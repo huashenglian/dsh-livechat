@@ -1,0 +1,4 @@
+# dsh-livechat bundle layer (self-activating).
+- insert:
+    - id: livechat
+      name: dsh-livechat
