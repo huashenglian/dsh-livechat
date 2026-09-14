@@ -68,8 +68,28 @@
 
 **长思考与警告**
 
-- agent 长时间只吐思考（`reasoning-delta`）时记为 `thinking` 软活动：保持 interval 活跃、不退避成静默；生成 prompt 会附上**最近 3 段思考片段**（约 240 字，不灌全量 CoT）。
-- 输出被截断（`turn/end` 的 `max-tokens`）、notice 告警等记为 `warning`，始终唤醒生成，并在提示中带上警告文案；覆盖层可弹一条 SC 弹幕。
+- streams of reasoning-only（`reasoning-delta`）记为软活动 `thinking`：可配置 `thinkingAsActive` 是否计入活跃（默认是，interval 不退避）。生成 prompt 按 `thinkingExcerptChars`（默认 240）附带最近思考片段。
+- 截断（`max-tokens`）与 notice 告警 → `warning`；`warningAlwaysWake`（默认开）始终唤醒；覆盖层可弹 SC。
+- **Token/API 统计**：从会话事件提取 usage（输入/输出/缓存命中），写入 prompt（`contextSources.usage`）。
+
+**可读数据源（`contextSources`）**
+
+| 键 | 默认 | 含义 |
+|---|---|---|
+| `conversation` | true | 最近对话摘要 |
+| `thinking` | true | 思考片段 |
+| `warning` | true | 警告/截断文案 |
+| `usage` | true | Token/统计 |
+| `tools` | true | 最近工具名 |
+| `events` | true | 事件类型列表 |
+
+关闭某项即不喂给弹幕 LLM。
+
+**静默退避（`backoff*`）**
+
+`interval` 心跳在静默期按 `backoffBaseSec` → ×`backoffFactor` 递增，上限 `backoffMaxSec`；活跃时长 ≥`backoffResetSec` 则重置。`backoffEnabled: false` 关闭。
+
+设置页「唤醒高级」「可读数据源」为**收纳栏**，默认折叠，减少滚动。
 
 ### 安全降级
 

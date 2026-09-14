@@ -68,8 +68,28 @@ All modes share a `globalMinGapSec` throttle so the LLM is never hammered.
 
 **Long thinking & warnings**
 
-- Streams of reasoning-only (`reasoning-delta`) count as soft `thinking` activity: interval stays active instead of backing off to silence. The generate prompt embeds the **last ~3 thinking snippets** (~240 chars), not the full CoT.
-- Output truncation (`turn/end` reason `max-tokens`) and notice warnings map to `warning`, which always wakes generation and carries the warning text in the prompt; the overlay can flash an SC.
+- Reasoning-only streams (`reasoning-delta`) map to soft `thinking` activity; `thinkingAsActive` (default true) keeps interval from backing off. The generate prompt embeds a thinking excerpt capped by `thinkingExcerptChars` (default 240).
+- Truncation (`max-tokens`) and notice warnings map to `warning`; `warningAlwaysWake` (default on) always wakes generation; overlay can flash SC.
+- **Token/API stats**: usage (input/output/cache hit) is pulled from session events into the prompt when `contextSources.usage` is on.
+
+**Readable context (`contextSources`)**
+
+| Key | Default | Meaning |
+|---|---|---|
+| `conversation` | true | Recent dialogue summary |
+| `thinking` | true | Thinking excerpt |
+| `warning` | true | Warning/truncation text |
+| `usage` | true | Token/API stats |
+| `tools` | true | Recent tool names |
+| `events` | true | Event kind list |
+
+Disable a key to omit it from the LLM prompt.
+
+**Silence backoff (`backoff*`)**
+
+Interval heartbeat grows from `backoffBaseSec` by `backoffFactor` up to `backoffMaxSec` while quiet; activity ≥ `backoffResetSec` resets. Set `backoffEnabled: false` to disable.
+
+Settings groups **Wake advanced** and **Readable context** are collapsible (collapsed by default).
 
 ### The safe fallback
 
