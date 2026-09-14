@@ -154,6 +154,7 @@ UI 双语（zh/en），随宿主语言切换。
 | PATCH | `/api/danmaku/pool/item` | `{sessionId, id, content?, weight?, tags?}` | `{ok, scope}` |
 | DELETE | `/api/danmaku/pool/item` | `{sessionId, id, scope?}` | `{ok, scope}` |
 | POST | `/api/danmaku/pool/restore` | `{sessionId, id}` | `{ok, item}` 或 `{ok:false, reason}`（too_old 返 403） |
+| POST | `/api/danmaku/pools/clear` | — | `{ok, removed}`（清空全部会话 live+archive 池文件） |
 | POST | `/api/danmaku/like` | `{sessionId?, content}` | `{ok, liked}`（提升 likes+weight；不存在则追加） |
 
 ### 示例：切换预设包

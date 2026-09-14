@@ -121,7 +121,7 @@ node --test tests/presets.test.js
 dsh plugin --profile web remove dsh-livechat
 ```
 
-This removes the dependency and the bundle entry. Your per-session danmaku pools (`~/.dsh/danmaku-pools/`) are left untouched.
+This removes the dependency and the bundle entry. If the server is still running, uninstall also wipes pool cache (`~/.dsh/danmaku-pools/`). You can also clear all pools from the pool editor’s red **Clear all pools** button.
 
 ---
 

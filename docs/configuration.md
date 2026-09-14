@@ -154,6 +154,7 @@ All routes are `kind: 'exact'` (path-unique). GET/POST share a handler per path 
 | PATCH | `/api/danmaku/pool/item` | `{sessionId, id, content?, weight?, tags?}` | `{ok, scope:'live'\|'archive'}` |
 | DELETE | `/api/danmaku/pool/item` | `{sessionId, id, scope?}` | `{ok, scope}` |
 | POST | `/api/danmaku/pool/restore` | `{sessionId, id}` | `{ok, item}` or `{ok:false, reason:'too_old'\|'not_found'}` (403 on too_old) |
+| POST | `/api/danmaku/pools/clear` | — | `{ok, removed}` (deletes all session live+archive pool files) |
 | POST | `/api/danmaku/like` | `{sessionId?, content}` | `{ok, liked}` (bumps likes+weight; appends if absent) |
 
 ### Example: change preset pack

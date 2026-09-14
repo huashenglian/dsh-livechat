@@ -121,7 +121,7 @@ node --test tests/presets.test.js
 dsh plugin --profile web remove dsh-livechat
 ```
 
-会移除依赖与 bundle 条目。你的分会话弹幕池（`~/.dsh/danmaku-pools/`）保持不动。
+会移除依赖与 bundle 条目。若服务仍在运行时卸载，会一并清理弹幕库缓存（`~/.dsh/danmaku-pools/`）。也可在「库编辑器」右上角用红色「清空弹幕库」一键删除全部缓存。
 
 ---
 

@@ -19,6 +19,8 @@ $DSH_HOME/danmaku-pools/<sessionId>.jsonl
 
 > [!IMPORTANT]
 > 会话被**用户删除**（`api-session/removed`）时池文件删除。`session/disposed`（内存驱逐，非用户删除）**不**删池——重新打开仍列表的会话仍有历史。
+>
+> **卸载插件**时若服务仍在运行，会清空整个 `danmaku-pools` 目录。也可在库编辑器右上角用红色「清空弹幕库」一键清空（二次确认），或 `POST /api/danmaku/pools/clear`。
 
 ## 历史回放
 

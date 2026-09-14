@@ -19,6 +19,8 @@ Each line is a JSON entry: `id`, `content`, `source` (preset/ai/user), `at` time
 
 > [!IMPORTANT]
 > Pool files are deleted when a session is **user-removed** (`api-session/removed`). They are **not** deleted on `session/disposed` (which fires on memory eviction, not user deletion) — so reopening a still-listed session still has its history.
+>
+> **Uninstalling the plugin** while the server is running also wipes the whole `danmaku-pools` directory. You can also clear all pools from the pool editor’s red **Clear all pools** button (with confirm), or `POST /api/danmaku/pools/clear`.
 
 ## History replay
 
