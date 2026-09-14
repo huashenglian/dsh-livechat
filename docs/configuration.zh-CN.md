@@ -109,6 +109,7 @@ UI 双语（zh/en），随宿主语言切换。
 | `toolErrorSc` | true | 布尔 | 工具出错吐槽 |
 | `showHeat` | true | 布尔 | 显示热度条 |
 | `debugSource` | false | 布尔 | 来源徽章前缀 📺/🤖/💬 |
+| `debugLogs` | false | 布尔 | 开启后终端才打印 llm call / llm raw 等日志 |
 
 ### 高级
 

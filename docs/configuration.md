@@ -109,6 +109,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `toolErrorSc` | true | bool | Scold burst on tool error |
 | `showHeat` | true | bool | Show heat bar |
 | `debugSource` | false | bool | Prefix 📺/🤖/💬 source badges |
+| `debugLogs` | false | bool | When on, host prints llm call / llm raw logs to the terminal |
 
 ### Advanced
 
