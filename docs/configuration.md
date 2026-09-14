@@ -73,7 +73,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
 | `llmEnabled` | true | bool | LLM generation master switch |
-| `llmModel` | agnes/agnes-2.5-flash | provider/model | LLM model id |
+| `llmModel` | `-` | `-` or provider/model | LLM model id; `-` disables LLM generation |
 | `llmBurstCount` | 5 | 1–20 | Comments per burst |
 | `llmIntervalSec` | 18 | 5–120 | Interval-mode cadence |
 | `stylePrompt` | 吐槽风格，短促有力 | string | Free-form LLM voice |

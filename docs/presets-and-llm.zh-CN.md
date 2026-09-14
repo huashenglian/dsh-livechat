@@ -83,7 +83,7 @@ LLM 调用可能失败（无 provider、超时、解析错误、断网）。失�
 |---|---|---|---|
 | `presetPack` | general | general/coding/casual | 预设选择 |
 | `llmEnabled` | true | 布尔 | LLM 生成总开关 |
-| `llmModel` | agnes/agnes-2.5-flash | provider/model | LLM 模型 id |
+| `llmModel` | `-` | `-` 或 provider/model | LLM 模型 id；`-` 表示不使用 LLM |
 | `llmBurstCount` | 5 | 1–20 | 每次突发条数 |
 | `llmIntervalSec` | 18 | 5–120 | interval 模式节奏 |
 | `stylePrompt` | 吐槽风格… | 字符串 | 自由 LLM 风格 |

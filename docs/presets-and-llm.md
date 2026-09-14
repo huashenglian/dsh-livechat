@@ -83,7 +83,7 @@ LLM calls can fail (no provider, timeout, parse error, network). When they do, t
 |---|---|---|---|
 | `presetPack` | general | general/coding/casual | Preset selection |
 | `llmEnabled` | true | bool | LLM generation master switch |
-| `llmModel` | agnes/agnes-2.5-flash | provider/model | LLM model id |
+| `llmModel` | `-` | `-` or provider/model | LLM model id; `-` disables LLM generation |
 | `llmBurstCount` | 5 | 1–20 | Comments per LLM burst |
 | `llmIntervalSec` | 18 | 5–120 | Interval-mode cadence |
 | `stylePrompt` | 吐槽风格… | string | Free-form LLM voice |

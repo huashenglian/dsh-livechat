@@ -73,7 +73,7 @@ UI 双语（zh/en），随宿主语言切换。
 | 字段 | 默认 | 范围/类型 | 作用 |
 |---|---|---|---|
 | `llmEnabled` | true | 布尔 | LLM 总开关 |
-| `llmModel` | agnes/agnes-2.5-flash | provider/model | 模型 id |
+| `llmModel` | `-` | `-` 或 provider/model | 模型 id；`-` 表示不使用 LLM |
 | `llmBurstCount` | 5 | 1–20 | 每次突发数 |
 | `llmIntervalSec` | 18 | 5–120 | interval 节奏 |
 | `stylePrompt` | 吐槽风格，短促有力 | 字符串 | 自由风格 |
