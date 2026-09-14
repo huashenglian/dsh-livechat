@@ -1,60 +1,128 @@
-# dsh-danmaku
+<div align="center">
 
-给 DeepSeek Harness（`dsh`）Web 对话区叠加 **B 站风格弹幕** 的插件。
+<img src="assets/cover.png" alt="dsh-livechat cover" width="720" />
 
-围观 agent 工作：用户消息、回复完成、工具调用、任务完成时，预设弹幕（可选 LLM 生成）横向飘过对话区。
+# dsh-livechat
 
-## 功能
+[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/huashenglian/dsh-livechat)
+[![license](https://img.shields.io/badge/license-MIT-green)](#license)
+[![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
-| 模块 | 说明 |
-|---|---|
-| 覆盖层 | 挂 `shell.overlay`，DOM 渲染 + 轨道防碰撞，同屏上限可配 |
-| 预设包 | 通用 / 编程 / 闲聊，事件触发抽样，会话内防复读 |
-| LLM（可选） | interval 唤醒 + 全局节流，失败静默降级预设 |
-| 交互 | 悬停暂停、点击详情（复制/屏蔽/删除）、防遮挡、手发弹幕、快捷控制 |
-| 设置 | 设置 → 插件 → 插件配置 →「弹幕 Danmaku」卡片；也走 `/api/danmaku/config` |
+**Bilibili-style live-chat danmaku overlay for [DeepSeek Harness](https://github.com/deepseek-ai) (`dsh`) Web.**
 
-## 安装
+Watch your agent work while a crowd of floating comments drifts across the conversation area — preset banter, optional LLM-generated quips, and your own messages too.
 
-```bash
-dsh plugin --profile web add ./dsh-danmaku
-```
+`English` · [中文](./README.zh-CN.md)
 
-重启 `dsh web` 后打开 `http://127.0.0.1:3080`。
+[Installation](#installation) · [Features](#features) · [Module docs](#module-documentation) · [Architecture](#architecture)
 
-> bundle 自带 `cordis.patch.yml` 自我激活，**不要**再在 profile 的 patch 里重复 insert。
+</div>
 
-## 配置要点
+---
 
-- `enabled`：总开关
-- `areaRatio`：弹幕层高度比例（1/4 · 1/2 · 3/4 · 全高）
-- `presetPack`：`general` / `coding` / `casual`
-- `llmEnabled`：开启后按 `llmIntervalSec` 生成吐槽弹幕；失败自动预设
-- `blockedWords`：命中不上屏
+## Installation
 
-Host 路由：
-
-- `GET/POST /api/danmaku/config`
-- `GET /api/danmaku/triggers?since=`
-- `POST /api/danmaku/preset-sample`
-- `POST /api/danmaku/generate`
-- `GET /api/danmaku/health`
-
-## 测试
+The plugin is a **bundle**: it carries its own `cordis.patch.yml` and self-activates — one command, no manual patch editing.
 
 ```bash
-node --test dsh-danmaku/tests/
+# From a local directory
+dsh plugin --profile web add ./dsh-livechat
+
+# From GitHub
+dsh plugin --profile web add github:huashenglian/dsh-livechat
+
+# From a packed tarball (pnpm pack / npm pack)
+dsh plugin --profile web add ./dsh-livechat-0.1.0.tgz
 ```
 
-## 架构说明
+Restart `dsh web`, then open <http://127.0.0.1:3080>. The danmaku overlay and a floating control ball appear over the conversation area.
 
-- Host `lib/index.js`：settings 命名空间 `danmaku`、`session/event` 触发环、HTTP 路由、可选 LLM
-- Client `lib/client.js`：`shell.overlay` 覆盖层 + `settings.plugin.item` 卡片 + DOM 渲染器
-- 共享 `lib/presets.js`：预设包、抽样、轨道碰撞纯函数
+> [!NOTE]
+> The bundle ships its own `cordis.patch.yml` that self-activates the plugin (`insert id: livechat`). **Do not** add a duplicate `insert` entry in your profile patch — a second insert throws `duplicate loader entry id: livechat` at boot.
 
-渲染器接口对齐 `参考文档/danmaku-renderer-design.md`，首版为 L5 DOM；后续可替换为 WebGL2 / Worker+GPU 而不改业务层。
+If you don't have the `dsh` CLI yet, you can run the web server directly:
 
-主要适配 **Chromium**（Edge / Chrome）。
+```bash
+npx @deepseek-ai/dsh web
+```
+
+### Quick health check
+
+```bash
+curl http://127.0.0.1:3080/api/danmaku/health
+# {"ok":true,"name":"dsh-danmaku","version":"0.1.0"}
+```
+
+---
+
+## What it does
+
+When the agent sends a message, finishes a reply, calls a tool, or completes a task, a burst of danmaku floats across the conversation column — just like watching a livestream. Preset packs cover general / coding / casual vibes, and an optional LLM generates fresh, context-aware quips on a throttle. A draggable ball gives you quick controls; a settings card tunes everything.
+
+![Danmaku in action](assets/danmaku-demo.png)
+
+*Live danmaku drifting over the conversation area while the agent works — multi-track, color-weighted, with the floating control ball (top-right).*
+
+---
+
+## Features
+
+| Module | What it covers | Doc |
+|---|---|---|
+| **Overlay & rendering** | `shell.overlay` mount, DOM renderer, multi-track collision avoidance, anti-occlusion fade, render-backend chain | [overlay-and-rendering.md](docs/overlay-and-rendering.md) |
+| **Presets & LLM** | Three preset packs, event-triggered sampling, fatigue dedup, optional LLM generation with smart/interval/tool-call wake modes, style templates | [presets-and-llm.md](docs/presets-and-llm.md) |
+| **Interaction** | Draggable control ball, hover-pause, click-for-detail (copy / block / delete), user-sent danmaku, heat bar, welcome & task-done effects | [interaction.md](docs/interaction.md) |
+| **Session pools** | Per-session `.jsonl` danmaku pools, history replay with decay + like-boost, archive/restore, in-app pool editor | [session-pools.md](docs/session-pools.md) |
+| **Configuration & API** | Settings card UI, every config field with defaults/range, full HTTP API reference | [configuration.md](docs/configuration.md) |
+
+### Highlights
+
+- **Three layouts**: roll (scroll), top-fixed, bottom-fixed — weighted per-config
+- **Anti-occlusion**: overlay dims while you read, brightens when the crowd gets loud
+- **LLM with safe fallback**: generation fails → silent preset fallback, no error popups
+- **Per-session memory**: liked/replayed danmaku resurface; deleted sessions clean up automatically
+- **Chromium-first**: tuned for Edge / Chrome; `translate3d`, page-`hidden` pause, on-screen cap
+
+---
+
+## Architecture
+
+```
+dsh-livechat/
+├─ package.json              # dsh.bundle + dsh.client declaration
+├─ cordis.patch.yml          # self-activating bundle layer (insert id: livechat)
+├─ lib/
+│  ├─ index.js               # Host: settings namespace, session/event ring, HTTP routes, optional LLM
+│  ├─ client.js              # Client: shell.overlay layer + settings card + DOM renderer + drag ball
+│  └─ presets.js            # Shared: preset packs, sampling, track-collision pure functions
+├─ tests/presets.test.js     # unit tests (node --test)
+├─ docs/                     # module documentation (this README links out)
+└─ assets/                   # demo screenshots & cover art
+```
+
+- **Host** (`lib/index.js`): registers the `danmaku` settings namespace, observes `session/event` into a trigger ring buffer, serves config/trigger/LLM/pool HTTP routes, and optionally generates danmaku via a configured LLM provider.
+- **Client** (`lib/client.js`): a self-contained `window.__ModuleLoader__` factory — mounts a `pointer-events:none` overlay on `shell.overlay`, renders danmaku via DOM (`translate3d`), runs the drag ball, the settings card (`settings.plugin.item`), and the pool editor.
+- **Shared** (`lib/presets.js`): preset packs, weighted sampling, layout/color picks, and track-collision checks — all pure functions, unit-tested.
+
+The renderer interface aligns with the design doc (`参考文档/danmaku-renderer-design.md`). First release ships the **L5 DOM** backend; the architecture reserves a drop-in upgrade path to WebGL2 / Worker+WebGL2 without touching the business layer.
+
+### Test
+
+```bash
+node --test tests/presets.test.js
+```
+
+---
+
+## Uninstall
+
+```bash
+dsh plugin --profile web remove dsh-livechat
+```
+
+This removes the dependency and the bundle entry. Your per-session danmaku pools (`~/.dsh/danmaku-pools/`) are left untouched.
+
+---
 
 ## License
 
