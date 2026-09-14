@@ -66,6 +66,11 @@
 
 所有模式共享 `globalMinGapSec` 节流，LLM 永不被打满。
 
+**长思考与警告**
+
+- agent 长时间只吐思考（`reasoning-delta`）时记为 `thinking` 软活动：保持 interval 活跃、不退避成静默；生成 prompt 会附上**最近 3 段思考片段**（约 240 字，不灌全量 CoT）。
+- 输出被截断（`turn/end` 的 `max-tokens`）、notice 告警等记为 `warning`，始终唤醒生成，并在提示中带上警告文案；覆盖层可弹一条 SC 弹幕。
+
 ### 安全降级
 
 LLM 调用可能失败（无 provider、超时、解析错误、断网）。失败时 host **静默**降级到预设突发，标记 `source: 'preset'`、`reason: 'llm-fallback'`。无报错弹窗，覆盖层不中断——弹幕继续飘。

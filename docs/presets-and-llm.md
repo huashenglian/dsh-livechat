@@ -66,6 +66,11 @@ You can also override with a free-form `stylePrompt`.
 
 All modes share a `globalMinGapSec` throttle so the LLM is never hammered.
 
+**Long thinking & warnings**
+
+- Streams of reasoning-only (`reasoning-delta`) count as soft `thinking` activity: interval stays active instead of backing off to silence. The generate prompt embeds the **last ~3 thinking snippets** (~240 chars), not the full CoT.
+- Output truncation (`turn/end` reason `max-tokens`) and notice warnings map to `warning`, which always wakes generation and carries the warning text in the prompt; the overlay can flash an SC.
+
 ### The safe fallback
 
 LLM calls can fail (no provider, timeout, parse error, network). When they do, the host **silently** falls back to a preset burst tagged `source: 'preset'` with `reason: 'llm-fallback'`. No error popups, no broken overlay — the crowd keeps talking.
