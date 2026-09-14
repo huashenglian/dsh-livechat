@@ -19,9 +19,11 @@ The ball hides when danmaku is fully disabled, and reappears on re-enable.
 
 With `hoverPause: true` (default), hovering any danmaku item freezes it in place so you can read it. Move away and it resumes scrolling. This is client-side only — no server round-trip, no jank.
 
+**Paused danmaku never auto-expire** (Bilibili-like): while a stay is frozen (hover or detail lock), it remains on screen indefinitely. It is only removed after it resumes and scrolls out of range, on session switch, or when dsh closes.
+
 ## Click for detail
 
-Click a danmaku to open a detail popover with the comment text and source badge:
+Click a danmaku to open a detail popover with the comment text and source badge. **Only the clicked danmaku freezes**; the rest keep rolling. Closing the detail unlocks that item (it stays paused only if still hovered).
 
 | Source badge | Meaning |
 |---|---|
