@@ -1,6 +1,6 @@
 {
   "name": "dsh-livechat",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Bilibili-style live-chat danmaku overlay for DeepSeek Harness Web: preset packs (general/coding/casual), optional LLM-generated quips with smart/interval/tool-call wake modes, draggable control ball, per-session danmaku pools with history replay + archive/restore, heat bar, and a full settings card. / 给 DeepSeek Harness Web 对话区叠加 B 站风格弹幕：预设包、可选 LLM 吐槽（智能/间隔/工具调用唤醒）、拖球、分会话弹幕库（历史回放+归档/恢复）、热度条与完整设置卡。",
   "type": "module",
   "main": "./lib/index.js",
