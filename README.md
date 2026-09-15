@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.3.1-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.3.2-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#许可证)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
