@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -32,7 +32,7 @@ dsh plugin --profile web add ./dsh-livechat
 dsh plugin --profile web add github:huashenglian/dsh-livechat
 
 # From a packed tarball (pnpm pack / npm pack)
-dsh plugin --profile web add ./dsh-livechat-0.1.0.tgz
+dsh plugin --profile web add ./dsh-livechat-0.2.0.tgz
 ```
 
 Restart `dsh web`, then open <http://127.0.0.1:3080>. The danmaku overlay and a floating control ball appear over the conversation area.
@@ -50,7 +50,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.1.0"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.2.0"}
 ```
 
 ---
