@@ -28,6 +28,9 @@ The plugin is a **bundle**: it carries its own `cordis.patch.yml` and self-activ
 # From a local directory
 dsh plugin --profile web add ./dsh-livechat
 
+# From npm (prebuilt — skips the allowBuilds approval)
+dsh plugin --profile web add dsh-livechat
+
 # From GitHub
 dsh plugin --profile web add github:huashenglian/dsh-livechat
 
@@ -50,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.2.0"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.1"}
 ```
 
 ---

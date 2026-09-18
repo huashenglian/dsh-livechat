@@ -28,6 +28,9 @@
 # 本地目录安装
 dsh plugin --profile web add ./dsh-livechat
 
+# npm 安装（预构建，免 allowBuilds 构建授权）
+dsh plugin --profile web add dsh-livechat
+
 # GitHub 安装
 dsh plugin --profile web add github:huashenglian/dsh-livechat
 
@@ -50,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.2.0"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.1"}
 ```
 
 ---
