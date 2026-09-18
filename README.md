@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.4.1-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.4.2-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#许可证)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.4.1"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.2"}
 ```
 
 ---
@@ -98,7 +98,8 @@ dsh-livechat/
 ├─ lib/
 │  ├─ index.js               # Host：settings 命名空间、session/event 触发环、HTTP 路由、可选 LLM
 │  ├─ client.js              # Client：shell.overlay 覆盖层 + 设置卡 + DOM 渲染器 + 拖球
-│  └─ presets.js            # 共享：预设包、抽样、轨道碰撞纯函数
+│  ├─ presets.js             # 共享：预设包、抽样、轨道碰撞纯函数
+│  └─ emoji-lib.js           # 表情库：文件夹、导入（git/zip）、权重、manifest
 ├─ tests/presets.test.js     # 单元测试（node --test）
 ├─ docs/                     # 模块文档（英文 *.md / 中文 *.zh-CN.md）
 └─ assets/                   # 演示截图与封面图

@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.4.1-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.4.2-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.4.1"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.2"}
 ```
 
 ---
@@ -98,7 +98,8 @@ dsh-livechat/
 ├─ lib/
 │  ├─ index.js               # Host: settings namespace, session/event ring, HTTP routes, optional LLM
 │  ├─ client.js              # Client: shell.overlay layer + settings card + DOM renderer + drag ball
-│  └─ presets.js            # Shared: preset packs, sampling, track-collision pure functions
+│  ├─ presets.js             # Shared: preset packs, sampling, track-collision pure functions
+│  └─ emoji-lib.js           # Emoji library: folders, imports (git/zip), weights, manifest
 ├─ tests/presets.test.js     # unit tests (node --test)
 ├─ docs/                     # module documentation (this README links out)
 └─ assets/                   # demo screenshots & cover art
