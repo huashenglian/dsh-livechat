@@ -7,7 +7,7 @@ The settings card UI, every config field with default and range, and the full HT
 
 ## Settings card UI
 
-Find it at **Settings → Plugins → Plugin config → "Live Chat Danmaku"** card (settings key `danmaku`). The card is a `settings.plugin.item` registered by the host's `settings.installSection` call.
+Find it at **Settings → Plugins → Plugin config → "Live Chat Danmaku"** card (settings key `danmaku`). The host registers the `danmaku` settings namespace: newer dsh goes through `settings.installSection`, while versions without that seam (e.g. `0.1.1-rc.2`) fall back to `settings.register`.
 
 The card groups controls by concern:
 
@@ -19,7 +19,16 @@ The card groups controls by concern:
 6. **Effects** — welcome on enter, task-done rain, tool-error banner, show heat, debug source
 7. **Advanced** — render backend
 
-Click **Save** to persist via `POST /api/danmaku/config` (which also writes through the settings service). The overlay polls `GET /api/danmaku/config` (~700ms) so changes apply live without a reload.
+Click **Save** to persist via `POST /api/danmaku/config`, which writes to **two** places:
+
+| Location | Content | Role |
+|---|---|---|
+| `$DSH_HOME/danmaku-config.json` | `{version, savedAt, config}` (the full config) | The **authoritative source at boot**; written synchronously, independent of the settings service |
+| the `danmaku:` section of `$DSH_HOME/settings.yaml` | only keys differing from defaults | Visible and hand-editable; external edits are adopted live and mirrored back |
+
+**A dsh restart never resets the configuration**: boot resolves mirror → settings section → built-in defaults, and a first run (neither present) writes the mirror immediately. The response's `persisted` field reports both writes; when the mirror write fails the card says so (`savedNoDisk`) instead of pretending the save succeeded.
+
+The overlay polls `GET /api/danmaku/config` (~700ms) so changes apply live without a reload.
 
 The UI is bilingual (zh/en) and picks the locale from the host.
 
@@ -127,9 +136,9 @@ All routes are `kind: 'exact'` (path-unique). GET/POST share a handler per path 
 
 | Method | Path | Body / query | Returns |
 |---|---|---|---|
-| GET | `/api/danmaku/health` | — | `{ok, name, version}` |
+| GET | `/api/danmaku/health` | — | `{ok, name, version, storage:{mirror, settings}}` (`settings` is `registered` or the reason it is not) |
 | GET | `/api/danmaku/config` | — | `{config}` (clamped live config) |
-| POST | `/api/danmaku/config` | `{config: {...}}` or patch fields | `{config}` (merged + clamped; writes through settings) |
+| POST | `/api/danmaku/config` | `{config: {...}}` or patch fields | `{config, persisted:{file, settings, settingsReason}}` (merged + clamped; writes the mirror and the settings section) |
 
 ### Triggers
 
@@ -150,7 +159,7 @@ All routes are `kind: 'exact'` (path-unique). GET/POST share a handler per path 
 
 | Method | Path | Query / body | Returns |
 |---|---|---|---|
-| GET | `/api/danmaku/pools` | — | `{sessions:[{sessionId, live, archived, oldest, newest}]}` |
+| GET | `/api/danmaku/pools` | — | `{sessions:[{sessionId, title, live, archived, oldest, newest}]}` (`title` is the folded session title — see below) |
 | GET | `/api/danmaku/pool` | `sessionId=`, `scope=live\|archive\|all` or `stats=1` | `stats=1` → pool stats; `scope` → `{items, sessionId, scope}`; else history-replay scored items |
 | PATCH | `/api/danmaku/pool/item` | `{sessionId, id, content?, weight?, tags?}` | `{ok, scope:'live'\|'archive'}` |
 | DELETE | `/api/danmaku/pool/item` | `{sessionId, id, scope?}` | `{ok, scope}` |

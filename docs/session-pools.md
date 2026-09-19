@@ -51,7 +51,7 @@ Archived entries are excluded from live replay but stay queryable via the pool A
 
 The settings card exposes an in-app **pool editor** ("Open pool editor…"):
 
-- Lists all sessions with live/archived counts and time ranges
+- Lists all sessions with their **real session names** (e.g. "帮我写一个…") plus live/archived counts and time ranges — the host folds titles for the whole page in one `ctx.sessionQuery.readTitleSnapshots()` batch, the same source dsh's own session list shows, falling back to a truncated session id when a session has no title
 - Per session, browse live + archive scopes
 - Edit content / weight / tags inline
 - Delete items (live or archived)

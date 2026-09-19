@@ -7,7 +7,7 @@
 
 ## 设置卡 UI
 
-入口：**设置 → 插件 → 插件配置 →「弹幕 Live Chat」**卡片（settings key `danmaku`）。卡片由 Host 的 `settings.installSection` 注册为 `settings.plugin.item`。
+入口：**设置 → 插件 → 插件配置 →「弹幕 Live Chat」**卡片（settings key `danmaku`）。卡片由 Host 注册 `danmaku` 设置命名空间：新版 dsh 走 `settings.installSection`，`0.1.1-rc.2` 等尚未提供该 seam 的版本回退到 `settings.register`。
 
 卡片按关注点分组：
 
@@ -19,7 +19,16 @@
 6. **效果**——入场欢迎、任务完成刷屏、工具出错吐槽、热度条、调试来源
 7. **高级**——渲染后端
 
-点 **保存**经 `POST /api/danmaku/config` 持久化（同时写穿 settings 服务）。覆盖层轮询 `GET /api/danmaku/config`（约 700ms），改动实时生效无需刷新。
+点 **保存**经 `POST /api/danmaku/config` 持久化，**双写**两处：
+
+| 位置 | 内容 | 角色 |
+|---|---|---|
+| `$DSH_HOME/danmaku-config.json` | `{version, savedAt, config}`（完整配置） | **启动时的权威来源**，同步写入，不依赖 settings 服务 |
+| `$DSH_HOME/settings.yaml` 的 `danmaku:` 段 | 仅与默认值不同的键 | 可见 / 可手工编辑；外部编辑会被热采纳并回写镜像 |
+
+**dsh 重启后配置不会重置**：启动顺序为「镜像 → settings 段 → 内置默认」，镜像与 settings 段都缺失（首次运行）时用默认值并立即写入镜像。响应里的 `persisted` 字段报告两处写入结果；若镜像写入失败，卡片提示会变红（`savedNoDisk`）而不是假装保存成功。
+
+覆盖层轮询 `GET /api/danmaku/config`（约 700ms），改动实时生效无需刷新。
 
 UI 双语（zh/en），随宿主语言切换。
 
@@ -127,9 +136,9 @@ UI 双语（zh/en），随宿主语言切换。
 
 | 方法 | 路径 | Body/Query | 返回 |
 |---|---|---|---|
-| GET | `/api/danmaku/health` | — | `{ok, name, version}` |
+| GET | `/api/danmaku/health` | — | `{ok, name, version, storage:{mirror, settings}}`（`settings` 为 `registered` 或未注册原因） |
 | GET | `/api/danmaku/config` | — | `{config}` |
-| POST | `/api/danmaku/config` | `{config:{...}}` 或补丁字段 | `{config}`（合并裁剪；写穿 settings） |
+| POST | `/api/danmaku/config` | `{config:{...}}` 或补丁字段 | `{config, persisted:{file, settings, settingsReason}}`（合并裁剪；写镜像 + settings 段） |
 
 ### 触发
 
@@ -150,7 +159,7 @@ UI 双语（zh/en），随宿主语言切换。
 
 | 方法 | 路径 | Query/Body | 返回 |
 |---|---|---|---|
-| GET | `/api/danmaku/pools` | — | `{sessions:[{sessionId, live, archived, oldest, newest}]}` |
+| GET | `/api/danmaku/pools` | — | `{sessions:[{sessionId, title, live, archived, oldest, newest}]}`（`title` 取自会话标题折叠，见下） |
 | GET | `/api/danmaku/pool` | `sessionId=`，`scope=live\|archive\|all` 或 `stats=1` | `stats=1`→统计；`scope`→`{items, sessionId, scope}`；否则历史回放打分项 |
 | PATCH | `/api/danmaku/pool/item` | `{sessionId, id, content?, weight?, tags?}` | `{ok, scope}` |
 | DELETE | `/api/danmaku/pool/item` | `{sessionId, id, scope?}` | `{ok, scope}` |

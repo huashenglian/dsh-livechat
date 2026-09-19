@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.4.2-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.4.3-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.4.2"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.3"}
 ```
 
 ---
@@ -86,6 +86,8 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 - **Per-session memory**: liked/replayed danmaku resurface; deleted sessions clean up automatically
 - **Chromium-first**: tuned for Edge / Chrome; `translate3d`, page-`hidden` pause, on-screen cap
 - **Paused items stay**: hover/detail-locked danmaku remain on screen until they resume and leave the range
+- **Config survives restarts**: every save writes a local mirror (`$DSH_HOME/danmaku-config.json`) plus a minimal `danmaku:` section in `settings.yaml`; boot resolves mirror → settings → defaults, so a restart never resets your setup
+- **Sessions by name**: the pool editor labels each pool with the real dsh session title instead of a truncated session id
 
 ---
 

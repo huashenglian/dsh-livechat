@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.4.2-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.4.3-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#许可证)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.4.2"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.3"}
 ```
 
 ---
@@ -86,6 +86,8 @@ curl http://127.0.0.1:3080/api/danmaku/health
 - **分会话记忆**：点赞/回放过的弹幕会重现；删除会话自动清理池
 - **Chromium 优先**：为 Edge / Chrome 调优；`translate3d`、页面 `hidden` 暂停、同屏上限
 - **暂停不消失**：悬停/详情锁定的弹幕会一直留在画面，直到恢复滚动并离开范围
+- **配置不再重置**：每次保存同时写本地镜像（`$DSH_HOME/danmaku-config.json`）与 `settings.yaml` 里的精简 `danmaku:` 段；启动按「镜像 → settings → 默认」解析，重启不会丢配置
+- **会话显名称**：弹幕库编辑器用 dsh 的真实会话名标注每个弹幕池，不再是截断的 sessionId
 
 ---
 
