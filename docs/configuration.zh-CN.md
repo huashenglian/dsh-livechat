@@ -132,7 +132,7 @@ UI 双语（zh/en），随宿主语言切换。
 
 | 字段 | 默认 | 范围/类型 | 作用 |
 |---|---|---|---|
-| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器——三个后端均已实现；`webgl2-main` 为内部别名，不在下拉框列出 |
+| `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器——三个后端均已实现；`webgl2-main` 为内部别名，不在下拉框列出 |
 
 ---
 

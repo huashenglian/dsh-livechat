@@ -132,7 +132,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
-| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer — all three backends are implemented; `webgl2-main` is an internal alias not shown in the dropdown |
+| `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer — all three backends are implemented; `webgl2-main` is an internal alias not shown in the dropdown |
 
 ---
 
