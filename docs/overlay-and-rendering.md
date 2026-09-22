@@ -41,9 +41,9 @@ Reading the conversation shouldn't fight a wall of text. Two knobs cooperate:
 - **`opacity`** (0.1–1.0): full brightness while the overlay is "active" (recent triggers / hovering).
 - **`opacityIdle`** (0–0.8): dimmed brightness when idle. With `antiOcclude: true` (default), the overlay fades to `opacityIdle` after activity settles and brightens back on new triggers or hover. This keeps danmaku present-but-quiet while you read.
 
-## Performance posture (L5 DOM)
+## Performance posture (DOM backend)
 
-The first release ships the **DOM backend**:
+The **DOM backend** is the visual and behavioral baseline. It uses:
 
 - `transform: translate3d(...)` for GPU-composited motion (no layout thrash)
 - On-screen cap enforced by `maxOnscreen` (default 40); excess items are recycled
@@ -52,14 +52,33 @@ The first release ships the **DOM backend**:
 
 This targets **Chromium** (Edge / Chrome). Other engines render but aren't tuned.
 
-## Render backend chain (future-ready)
+The two GPU backends reuse the same business logic (spawn, collision, pause, config) and only swap the drawing layer, so the DOM backend remains the reference for look and feel.
 
-`renderBackend` accepts `auto | dom | webgl2 | webgl2-main | webgl2-worker`. Today only `dom` (and `auto`→`dom`) is implemented; the interface is shaped so a later drop-in can swap to:
+## Render backend chain
 
-| Backend | Plan |
+`renderBackend` accepts `auto | dom | webgl2 | webgl2-main | webgl2-worker`. **All three backends are implemented** — DOM, main-thread WebGL2, and Worker-driven WebGL2 (OffscreenCanvas).
+
+| Backend | Status | What it is |
+|---|---|---|
+| `dom` | implement | `translate3d` DOM nodes; native hover-pause and click |
+| `webgl2` | implement | Main-thread WebGL2 instanced quads (L2) |
+| `webgl2-worker` | implement | Offscreen canvas + Worker-driven instanced render (L1) |
+
+The `auto` chain degrades on failure: **Worker → main-thread → DOM**. If Worker init throws it tries main-thread WebGL2, and if that throws too it falls back to DOM.
+
+`webgl2-main` is an **internal config alias**. It is accepted and handled (parsed as valid config, routed to the main-thread WebGL2 renderer, and used by the `auto` chain as the middle fallback), but it is **not shown in the settings dropdown** — the UI lists `auto / dom / webgl2 / webgl2-worker` only. Use it in a config file or HTTP patch when you want to pin the main-thread renderer explicitly.
+
+### Known GPU capability gaps (documented limitations)
+
+The GPU backends are not yet at visual parity with DOM for everything. These are documented limitations, not work in progress:
+
+| Capability | On GPU backends (`webgl2`, `webgl2-worker`) |
 |---|---|
-| `webgl2` | Main-thread WebGL2 instanced quads (L2) |
-| `webgl2-worker` | Offscreen canvas + Worker-driven instanced render (L1) |
+| **advanced** styles (rain / pop / rotate / scale / bold) | DOM-only. The GPU backends discard advanced styling entirely. |
+| **emoji** images | DOM-only. GPU backends only strip emoji characters from text (`filterEmoji`); they never draw the emoji image. |
+| `reverse` layout | Remapped to `roll` on both GPU backends. There is no reverse track in the GPU renderers; items flagged `reverse` scroll as normal roll danmaku. |
+
+Everything else (roll / top / bottom layouts, color weighting, stroke, on-screen caps, pause semantics) behaves the same across backends.
 
 The upgrade path follows `参考文档/danmaku-renderer-design.md` (§11 degradation chain) — business logic stays untouched; only the renderer implementation swaps.
 
@@ -77,6 +96,6 @@ The upgrade path follows `参考文档/danmaku-renderer-design.md` (§11 degrada
 | `areaRatio` | 0.5 | 0.25–1.0 | Roll track height fraction |
 | `layoutWeights` | 80/10/10 | 0–100 each | roll/top/bottom spawn weights |
 | `stroke` | true | bool | White text stroke for readability |
-| `renderBackend` | dom | auto/dom/webgl2/webgl2-worker | Renderer selection |
+| `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer selection (`webgl2-main` is an internal alias, not in the dropdown) |
 
 See [configuration.md](configuration.md) for the full field reference.

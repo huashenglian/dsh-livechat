@@ -41,9 +41,9 @@ gapSec ≈ (上条宽 + 新条宽 + 间距) / 上条速度
 - **`opacity`**（0.1–1.0）：覆盖层"活跃"时（近期有触发 / 悬停）的满亮度。
 - **`opacityIdle`**（0–0.8）：空闲时的暗淡亮度。`antiOcclude: true`（默认）时，活动平息后覆盖层渐变到 `opacityIdle`，新触发或悬停时亮回来——阅读时弹幕在场但安静。
 
-## 性能策略（L5 DOM）
+## 性能策略（DOM 后端）
 
-首版发布 **DOM 后端**：
+**DOM 后端是视觉与行为基准**，采用：
 
 - `transform: translate3d(...)` GPU 合成运动（无布局抖动）
 - `maxOnscreen`（默认 40）硬上限同屏节点，超出回收
@@ -52,14 +52,33 @@ gapSec ≈ (上条宽 + 新条宽 + 间距) / 上条速度
 
 主要面向 **Chromium**（Edge / Chrome）。其他引擎可渲染但未调优。
 
-## 渲染后端链（架构预留）
+两个 GPU 后端复用同一套业务逻辑（生成、碰撞、暂停、配置），只替换绘制层，因此 DOM 后端仍是观感基准。
 
-`renderBackend` 接受 `auto | dom | webgl2 | webgl2-main | webgl2-worker`。当前仅实现 `dom`（`auto` → `dom`）；接口已塑形，后续可平滑替换为：
+## 渲染后端链
 
-| 后端 | 计划 |
+`renderBackend` 接受 `auto | dom | webgl2 | webgl2-main | webgl2-worker`。**三个后端均已实现**——DOM、主线程 WebGL2、Worker 驱动 WebGL2（OffscreenCanvas）。
+
+| 后端 | 状态 | 说明 |
+|---|---|---|
+| `dom` | 已实现 | `translate3d` DOM 节点；原生悬停暂停与点击 |
+| `webgl2` | 已实现 | 主线程 WebGL2 instanced quads（L2） |
+| `webgl2-worker` | 已实现 | Offscreen canvas + Worker 驱动 instanced 渲染（L1） |
+
+`auto` 链按失败逐级降级：**Worker → 主线程 → DOM**。Worker 初始化抛错则尝试主线程 WebGL2，再抛错则回退 DOM。
+
+`webgl2-main` 是**内部配置别名**：它会被接受并处理（作为合法配置解析、路由到主线程 WebGL2 渲染器、并被 `auto` 链用作中间回退），但**不在设置下拉框中列出**——UI 只列 `auto / dom / webgl2 / webgl2-worker`。需要显式固定主线程渲染器时，可在配置文件或 HTTP 补丁里使用它。
+
+### GPU 已知能力差异（文档化限制）
+
+GPU 后端尚未在所有方面与 DOM 达到观感一致。以下是文档化限制，不是待办功能：
+
+| 能力 | 在 GPU 后端（`webgl2`、`webgl2-worker`） |
 |---|---|
-| `webgl2` | 主线程 WebGL2 instanced quads（L2） |
-| `webgl2-worker` | Offscreen canvas + Worker 驱动 instanced 渲染（L1） |
+| **advanced** 样式（rain / pop / rotate / scale / bold） | 仅 DOM。GPU 后端整体丢弃高级样式。 |
+| **emoji** 图片 | 仅 DOM。GPU 后端只用 `filterEmoji` 过滤掉文本里的 emoji 字符，从不绘制 emoji 图片。 |
+| `reverse` 轨道 | 两个 GPU 后端都把 `reverse` 重映射为 `roll`。GPU 渲染器没有反向轨道；标记为 `reverse` 的弹幕按普通滚动弹幕播放。 |
+
+其余能力（滚动 / 顶 / 底布局、颜色权重、描边、同屏上限、暂停语义）在各后端行为一致。
 
 升级路径遵循 `参考文档/danmaku-renderer-design.md`（§11 降级链）——业务层不改，仅替换渲染器实现。
 
@@ -77,6 +96,6 @@ gapSec ≈ (上条宽 + 新条宽 + 间距) / 上条速度
 | `areaRatio` | 0.5 | 0.25–1.0 | 滚动轨高度比例 |
 | `layoutWeights` | 80/10/10 | 各 0–100 | 滚/顶/底生成权重 |
 | `stroke` | true | 布尔 | 白色描边提升可读性 |
-| `renderBackend` | dom | auto/dom/webgl2/webgl2-worker | 渲染器选择 |
+| `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器选择（`webgl2-main` 为内部别名，不在下拉框） |
 
 完整字段见 [configuration.md](configuration.md)。

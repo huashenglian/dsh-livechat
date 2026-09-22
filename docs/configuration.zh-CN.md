@@ -32,6 +32,14 @@
 
 UI 双语（zh/en），随宿主语言切换。
 
+### 输入控件行为
+
+数字字段是**裁剪输入**：聚焦时可以清空输入框，值在失焦时提交——空输入解析为该字段下限，超范围输入裁剪到最近的边界。
+
+**布局权重**（滚动 % / 顶部 % / 底部 %，即 `layoutWeights.roll` / `.top` / `.bottom`）各由一个**滑块 + 数字输入框**联动组成：拖动滑块更新数字，输入数字移动滑块，两者都裁剪到 0–100。
+
+**长文本**字段是多行 **textarea**，固定高度、内部滚动（不自动增高）：智能唤醒事件（`wakeupEvents`）、屏蔽词（`blockedWords`）、工具名列表（`toolcallTools`）、LLM 风格提示词（`stylePrompt`）。逗号列表字段同时接受 `,` 与 `，` 分隔符。
+
 ## 配置字段参考
 
 所有字段位于 `danmaku` 设置命名空间。写入时由 `clampConfig()` 裁剪。
@@ -49,7 +57,7 @@ UI 双语（zh/en），随宿主语言切换。
 | `crossSec` | 8 | 3–20 | 穿屏秒数 |
 | `scrollSpeed` | 140 | 40–400 | px/s（覆盖穿屏推导） |
 | `areaRatio` | 0.5 | 0.25–1.0 | 滚动轨高度比例 |
-| `layoutWeights` | `{roll:80,top:10,bottom:10}` | 各 0–100 | 滚/顶/底权重 |
+| `layoutWeights` | `{roll:80,top:10,bottom:10}` | 各 0–100（滑块 + 数字） | 滚/顶/底权重 |
 | `stroke` | true | 布尔 | 白色描边 |
 | `hoverPause` | true | 布尔 | 悬停冻结 |
 | `userSend` | true | 布尔 | 允许手发 |
@@ -124,7 +132,7 @@ UI 双语（zh/en），随宿主语言切换。
 
 | 字段 | 默认 | 范围/类型 | 作用 |
 |---|---|---|---|
-| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器（仅 `dom`/`auto`→`dom` 已实现） |
+| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器——三个后端均已实现；`webgl2-main` 为内部别名，不在下拉框列出 |
 
 ---
 

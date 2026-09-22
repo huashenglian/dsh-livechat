@@ -32,6 +32,14 @@ The overlay polls `GET /api/danmaku/config` (~700ms) so changes apply live witho
 
 The UI is bilingual (zh/en) and picks the locale from the host.
 
+### Input controls
+
+Number fields are clamped inputs: while focused you can clear the box, and the value commits on blur — an empty box resolves to the field's lower bound, and an out-of-range entry is clamped to the nearest bound.
+
+The **layout weights** (滚动 % / 顶部 % / 底部 %, i.e. `layoutWeights.roll` / `.top` / `.bottom`) are each a **slider plus a number input** bound together. Drag the slider to update the number, or type a number to move the slider. Both are clamped to 0–100.
+
+The **long-text** fields are multiline **textareas** with a fixed height and internal scrolling (they don't auto-grow): 智能唤醒事件 (`wakeupEvents`), 屏蔽词 (`blockedWords`), 工具名列表 (`toolcallTools`), and LLM 风格提示词 (`stylePrompt`). Comma-list fields accept both `,` and `，` separators.
+
 ## Config field reference
 
 All fields live under the `danmaku` settings namespace. Values are clamped on write by `clampConfig()`.
@@ -49,7 +57,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `crossSec` | 8 | 3–20 | Seconds for roll item to cross |
 | `scrollSpeed` | 140 | 40–400 | px/s (overrides crossSec-derived speed) |
 | `areaRatio` | 0.5 | 0.25–1.0 | Roll track height fraction |
-| `layoutWeights` | `{roll:80,top:10,bottom:10}` | 0–100 each | roll/top/bottom spawn weights |
+| `layoutWeights` | `{roll:80,top:10,bottom:10}` | 0–100 each (slider + number) | roll/top/bottom spawn weights |
 | `stroke` | true | bool | White text stroke for readability |
 | `hoverPause` | true | bool | Freeze item on hover |
 | `userSend` | true | bool | Allow user-sent danmaku |
@@ -124,7 +132,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
-| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer (only `dom`/`auto`→`dom` implemented) |
+| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer — all three backends are implemented; `webgl2-main` is an internal alias not shown in the dropdown |
 
 ---
 
