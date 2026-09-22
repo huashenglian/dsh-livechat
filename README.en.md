@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.4.7-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.4.8-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.4.7"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.8"}
 ```
 
 ---
