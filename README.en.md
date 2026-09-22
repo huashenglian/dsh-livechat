@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.4.4"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.4.5"}
 ```
 
 ---
