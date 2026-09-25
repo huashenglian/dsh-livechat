@@ -27,6 +27,12 @@ import {
   GIFT_TIP_MAX,
   GIFT_DEFAULTS,
   GIFT_POSITIONS,
+  pickSender,
+  parseSenderBatch,
+  formatSenderBatch,
+  GIFT_ANONYMOUS_SENDER,
+  GIFT_SENDERS_MAX,
+  GIFT_SENDER_NAME_MAX,
 } from '../lib/gift-lib.js'
 
 // Isolated temp "DSH_HOME" per test — never touches the real ~/.dsh.
@@ -700,4 +706,102 @@ test('renderGiftTip: result is capped at GIFT_TIP_MAX (60) chars', () => {
   assert.equal(out.length, GIFT_TIP_MAX)
   assert.equal(out, ('甲 送出了 ' + longGift).slice(0, GIFT_TIP_MAX))
   assert.equal(renderGiftTip('x'.repeat(200), 'a', 'b').length, GIFT_TIP_MAX)
+})
+
+// ---------------------------------------------------------------------------
+// pickSender + sender batch parse/format (todo 19).
+// A deterministic fixed-seed PRNG — NEVER Math.random — so the distribution
+// assertion is reproducible. LCG constants are the classic Numerical Recipes
+// ones; only the sequence matters, not statistical quality.
+// ---------------------------------------------------------------------------
+function lcg(seed) {
+  let s = seed >>> 0
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0
+    return s / 4294967296
+  }
+}
+
+test('pickSender: empty/invalid list -> 匿名', () => {
+  assert.equal(GIFT_ANONYMOUS_SENDER, '匿名')
+  assert.equal(pickSender([]), '匿名')
+  assert.equal(pickSender(null), '匿名')
+  assert.equal(pickSender(undefined), '匿名')
+  assert.equal(pickSender('nope'), '匿名')
+  assert.equal(pickSender([{ name: '' }, { name: '   ' }]), '匿名')
+  assert.equal(pickSender([null, 42, {}]), '匿名')
+})
+
+test('pickSender: single sender / default weight / zero-weight uniform fallback', () => {
+  assert.equal(pickSender([{ name: '甲' }]), '甲')
+  assert.equal(pickSender([{ name: '甲', weight: 5 }]), '甲')
+  // missing / malformed weights default to 1
+  assert.equal(pickSender([{ name: '甲', weight: 'x' }], () => 0.9), '甲')
+  assert.equal(pickSender([{ name: '甲' }, { name: '乙' }], () => 0), '甲')
+  assert.equal(pickSender([{ name: '甲' }, { name: '乙' }], () => 0.999), '乙')
+  // every weight 0 -> uniform fallback still returns a listed member
+  const pick = pickSender([{ name: '甲', weight: 0 }, { name: '乙', weight: 0 }], () => 0.5)
+  assert.ok(pick === '甲' || pick === '乙', 'zero-total fallback -> member, got ' + pick)
+})
+
+test('pickSender: weight distribution over 10k draws deviates <5% (fixed seed)', () => {
+  const rand = lcg(20260925)
+  const senders = [{ name: 'A', weight: 1 }, { name: 'B', weight: 3 }]
+  const N = 10000
+  const counts = { A: 0, B: 0 }
+  for (let i = 0; i < N; i++) counts[pickSender(senders, rand)]++
+  const exp = { A: 0.25, B: 0.75 }
+  const devA = Math.abs(counts.A / N - exp.A)
+  const devB = Math.abs(counts.B / N - exp.B)
+  assert.ok(devA < 0.05, `A weight 1 -> ${(counts.A / N).toFixed(4)} vs 0.25 (dev ${devA.toFixed(4)})`)
+  assert.ok(devB < 0.05, `B weight 3 -> ${(counts.B / N).toFixed(4)} vs 0.75 (dev ${devB.toFixed(4)})`)
+  assert.equal(counts.A + counts.B, N, 'every draw returns a listed sender')
+})
+
+test('parseSenderBatch: comma/newline/CJK-comma split, 名字*权重, default weight 1', () => {
+  const r = parseSenderBatch('甲, 乙*3\n丙*0.5，丁、戊')
+  assert.deepEqual(r.senders, [
+    { name: '甲', weight: 1 },
+    { name: '乙', weight: 3 },
+    { name: '丙', weight: 0.5 },
+    { name: '丁', weight: 1 },
+    { name: '戊', weight: 1 },
+  ])
+  assert.equal(r.invalid.length, 0)
+  assert.equal(r.overflow, 0)
+})
+
+test('parseSenderBatch: blank lines skipped, illegal lines ignored + reported (never throws)', () => {
+  const r = parseSenderBatch('\n甲\n*5\n乙*abc\n   \n丙*\n丁*')
+  assert.deepEqual(r.senders, [{ name: '甲', weight: 1 }])
+  assert.deepEqual(r.invalid.map((x) => x.reason), ['empty_name', 'bad_weight', 'bad_weight', 'bad_weight'])
+  assert.deepEqual(r.invalid.map((x) => x.line), [3, 4, 6, 7])
+  assert.equal(parseSenderBatch(null).senders.length, 0)
+  assert.equal(parseSenderBatch(undefined).invalid.length, 0)
+})
+
+test('parseSenderBatch: caps at GIFT_SENDERS_MAX (50), names truncated to GIFT_SENDER_NAME_MAX (24)', () => {
+  assert.equal(GIFT_SENDERS_MAX, 50)
+  assert.equal(GIFT_SENDER_NAME_MAX, 24)
+  const lines = []
+  for (let i = 0; i < 60; i++) lines.push('s' + i)
+  const r = parseSenderBatch(lines.join('\n'))
+  assert.equal(r.senders.length, 50)
+  assert.equal(r.senders[0].name, 's0')
+  assert.equal(r.overflow, 10)
+  const long = parseSenderBatch('N'.repeat(100))
+  assert.equal(long.senders[0].name.length, GIFT_SENDER_NAME_MAX)
+})
+
+test('formatSenderBatch round-trips through parseSenderBatch', () => {
+  const senders = [
+    { name: '甲', weight: 1 },
+    { name: '乙', weight: 3 },
+    { name: '丙', weight: 0 },
+  ]
+  const text = formatSenderBatch(senders)
+  assert.equal(text, '甲\n乙*3\n丙*0')
+  assert.deepEqual(parseSenderBatch(text).senders, senders)
+  assert.equal(formatSenderBatch(null), '')
+  assert.equal(formatSenderBatch([null, { name: '' }]), '')
 })
