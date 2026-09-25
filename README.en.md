@@ -76,6 +76,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | **Presets & LLM** | Three preset packs, event-triggered sampling, fatigue dedup, optional LLM generation with smart/interval/tool-call wake modes, style templates | [presets-and-llm.md](docs/presets-and-llm.md) |
 | **Interaction** | Draggable control ball, hover-pause, click-for-detail (copy / block / delete), user-sent danmaku, heat bar, welcome & task-done effects | [interaction.md](docs/interaction.md) |
 | **Session pools** | Per-session `.jsonl` danmaku pools, history replay with decay + like-boost, archive/restore, in-app pool editor | [session-pools.md](docs/session-pools.md) |
+| **Gift effects** | Asset store (file / SVG paste / GitHub / zip import), gift catalog with room-id refresh, binding + effect params, gift simulation (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
 | **Configuration & API** | Settings card UI, every config field with defaults/range, full HTTP API reference | [configuration.md](docs/configuration.md) |
 
 ### Highlights

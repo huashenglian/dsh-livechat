@@ -19,6 +19,8 @@ The card groups controls by concern:
 6. **Effects** — welcome on enter, task-done rain, tool-error banner, show heat, debug source
 7. **Advanced** — render backend
 
+**Gifts** (its own nav tab, right after **Danmaku pools**) — master switch, the gift config modal, asset store entry; see [Gift effects](./gift-effects.md).
+
 Click **Save** to persist via `POST /api/danmaku/config`, which writes to **two** places:
 
 | Location | Content | Role |
@@ -133,6 +135,23 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
 | `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer — all three backends are implemented; `webgl2-main` is an internal alias not shown in the dropdown |
+
+### Gift
+
+Writes are clamped by `clampGiftConfig()` (`lib/gift-lib.js`), which returns exactly these 10 `gift*` keys and drops unknown ones (the `gift` namespace is closed). Per-field semantics: see [Gift effects](./gift-effects.md).
+
+| Field | Default | Range / type | Effect |
+|---|---|---|---|
+| `giftEnabled` | false | bool | Gift module master switch, **off by default**; off means zero action |
+| `giftRoomId` | `''` | digits-only string, ≤20 chars (non-digits stripped) | Room id for catalog refresh, **filled in by the user**; empty issues no external request |
+| `giftTemplate` | `{user} 送出了 {gift}` | string ≤100 (empty → default) | Tip danmaku template; placeholders `{user}` (sender), `{gift}` (gift name) |
+| `giftSenders` | `[]` | array of `{name,weight}`, ≤50; `name` ≤24 chars, `weight` 0–100 | Weighted sender pool; empty/invalid entries dropped, anonymous fallback |
+| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop}}`, ≤2000 | Gift → asset binding; `position` one of 8 presets, `scale` 0.25–2, `durationMs` 1000–10000, `loop` bool |
+| `giftTrigger` | `{manual:true, random:false, probability:0.05, minMs:30000, maxMs:120000}` | `manual`/`random` bool; `probability` 0–1; `minMs` 1000–3600000; `maxMs` ≥minMs, ≤3600000 | Manual/random trigger and roll cadence |
+| `giftMaxConcurrent` | 2 | 1–10 | On-screen effect concurrency cap; extras queue up |
+| `giftShowSender` | true | bool | Whether the tip danmaku carries the sender nickname label |
+| `giftLayout` | `{roll:100, top:0, bottom:0}` | each 0–100 | Roll/top/bottom layout weights for gift tip danmaku |
+| `giftMaxAssetMB` | 8 | 1–64 | Per-asset size cap (MB); server 413s larger uploads |
 
 ---
 

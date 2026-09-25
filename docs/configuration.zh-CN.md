@@ -19,6 +19,8 @@
 6. **效果**——入场欢迎、任务完成刷屏、工具出错吐槽、热度条、调试来源
 7. **高级**——渲染后端
 
+**礼物**（独立 nav Tab，紧跟「弹幕库」）——总开关、礼物配置大模态、素材仓库入口；详见 [礼物特效](./gift-effects.zh-CN.md)。
+
 点 **保存**经 `POST /api/danmaku/config` 持久化，**双写**两处：
 
 | 位置 | 内容 | 角色 |
@@ -133,6 +135,23 @@ UI 双语（zh/en），随宿主语言切换。
 | 字段 | 默认 | 范围/类型 | 作用 |
 |---|---|---|---|
 | `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器——三个后端均已实现；`webgl2-main` 为内部别名，不在下拉框列出 |
+
+### 礼物
+
+写入时由 `clampGiftConfig()`（`lib/gift-lib.js`）裁剪，只返回这 10 个 `gift*` 键、丢弃未知键（`gift` 命名空间是封闭的）。逐字段语义见 [礼物特效](./gift-effects.zh-CN.md)。
+
+| 字段 | 默认 | 范围/类型 | 作用 |
+|---|---|---|---|
+| `giftEnabled` | false | 布尔 | 礼物模块总开关，**默认关闭**；关时零动作 |
+| `giftRoomId` | `''` | 纯数字串，≤20 位（非数字剥离） | 目录刷新用房间号，**由用户填写**；空值不发起外部请求 |
+| `giftTemplate` | `{user} 送出了 {gift}` | 字符串 ≤100（空→回默认） | 提示弹幕模板；占位符 `{user}`（送礼人）、`{gift}`（礼物名） |
+| `giftSenders` | `[]` | `{name,weight}` 数组，≤50 条；`name` ≤24 字符，`weight` 0–100 | 送礼人加权池；空/无效项过滤后用匿名 |
+| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop}}`，≤2000 条 | 礼物→素材绑定；`position` 为 8 预设之一，`scale` 0.25–2，`durationMs` 1000–10000，`loop` 布尔 |
+| `giftTrigger` | `{manual:true, random:false, probability:0.05, minMs:30000, maxMs:120000}` | `manual`/`random` 布尔；`probability` 0–1；`minMs` 1000–3600000；`maxMs` ≥minMs、≤3600000 | 手动/随机触发与抽签节奏 |
+| `giftMaxConcurrent` | 2 | 1–10 | 同屏特效并发上限，超出排队 |
+| `giftShowSender` | true | 布尔 | 提示弹幕是否带送礼人昵称标签 |
+| `giftLayout` | `{roll:100, top:0, bottom:0}` | 各 0–100 | 礼物提示弹幕的滚/顶/底布局权重 |
+| `giftMaxAssetMB` | 8 | 1–64 | 单个素材大小上限（MB），服务端 413 裁剪 |
 
 ---
 
