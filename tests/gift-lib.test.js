@@ -23,6 +23,8 @@ import {
   sanitizeSvg,
   SVG_MAX_BYTES,
   clampGiftConfig,
+  renderGiftTip,
+  GIFT_TIP_MAX,
   GIFT_DEFAULTS,
   GIFT_POSITIONS,
 } from '../lib/gift-lib.js'
@@ -662,4 +664,40 @@ test('clampGiftConfig does not mutate partial/base and is idempotent', () => {
   hostile.giftBindings.g1 = { position: 'random' }
   const out = clampGiftConfig(hostile, {})
   assert.equal(out.giftBindings.g1.position, 'random')
+})
+
+// ---------------------------------------------------------------------------
+// renderGiftTip (todo 16): {user}/{gift} substitution pure function.
+// ---------------------------------------------------------------------------
+
+test('renderGiftTip substitutes {user} and {gift} in the default template', () => {
+  assert.equal(renderGiftTip('{user} 送出了 {gift}', '小林', '小电视'), '小林 送出了 小电视')
+  assert.equal(renderGiftTip('{gift} <- {user}', 'a', 'b'), 'b <- a')
+  assert.equal(GIFT_TIP_MAX, 60)
+})
+
+test('renderGiftTip: empty/blank/missing template falls back to the default', () => {
+  const def = GIFT_DEFAULTS.giftTemplate
+  assert.equal(renderGiftTip('', '甲', '花'), renderGiftTip(def, '甲', '花'))
+  assert.equal(renderGiftTip('   ', '甲', '花'), renderGiftTip(def, '甲', '花'))
+  assert.equal(renderGiftTip(null, '甲', '花'), renderGiftTip(def, '甲', '花'))
+  assert.equal(renderGiftTip(undefined, '甲', '花'), '甲 送出了 花')
+})
+
+test('renderGiftTip: missing {gift} token still renders; unknown tokens verbatim', () => {
+  assert.equal(renderGiftTip('欢迎 {user}', '甲', '小电视'), '欢迎 甲')
+  assert.equal(renderGiftTip('{user}{gift}{unknown}', 'a', 'b'), 'ab{unknown}')
+})
+
+test('renderGiftTip: null/garbage user or gift degrade to a string (no throw)', () => {
+  assert.equal(renderGiftTip('{user}|{gift}', null, undefined), '|')
+  assert.equal(renderGiftTip('{user}|{gift}', 42, {}), '42|[object Object]')
+})
+
+test('renderGiftTip: result is capped at GIFT_TIP_MAX (60) chars', () => {
+  const longGift = '礼'.repeat(80)
+  const out = renderGiftTip('{user} 送出了 {gift}', '甲', longGift)
+  assert.equal(out.length, GIFT_TIP_MAX)
+  assert.equal(out, ('甲 送出了 ' + longGift).slice(0, GIFT_TIP_MAX))
+  assert.equal(renderGiftTip('x'.repeat(200), 'a', 'b').length, GIFT_TIP_MAX)
 })
