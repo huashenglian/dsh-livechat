@@ -1,0 +1,35 @@
+<!-- dsh-livechat bundled gift effect "星光迸发" (starburst) — self-drawn, MIT. 512x512, ~2.4s one-shot. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <style>
+    .gdzsb-g{transform-box:view-box;transform-origin:50% 50%;animation:gdzsb-burst 2.4s cubic-bezier(.2,.75,.25,1) 1 both;}
+    .gdzsb-ray{stroke:#fcd34d;stroke-width:10;stroke-linecap:round;filter:drop-shadow(0 0 6px rgba(252,211,77,.85));}
+    .gdzsb-core{transform-box:view-box;transform-origin:50% 50%;animation:gdzsb-core 2.4s ease-out 1 both;}
+    .gdzsb-ring{transform-box:view-box;transform-origin:50% 50%;animation:gdzsb-ring 2.4s ease-out 1 both;fill:none;stroke:#fff7cc;stroke-width:4;}
+    .gdzsb-spark{transform-box:view-box;transform-origin:50% 50%;animation:gdzsb-spark 2.4s ease-out 1 both;fill:#fff;}
+    @keyframes gdzsb-burst{0%{transform:scale(.08) rotate(-8deg);opacity:0;}22%{opacity:1;}70%{opacity:1;}100%{transform:scale(1.18) rotate(26deg);opacity:0;}}
+    @keyframes gdzsb-core{0%{transform:scale(.15);opacity:0;}18%{transform:scale(1.12);opacity:1;}55%{opacity:.9;}100%{transform:scale(.55);opacity:0;}}
+    @keyframes gdzsb-ring{0%{transform:scale(.1);opacity:0;}25%{opacity:.85;}100%{transform:scale(1.5);opacity:0;}}
+    @keyframes gdzsb-spark{0%{transform:scale(0);opacity:0;}30%{transform:scale(1);opacity:1;}100%{transform:scale(.2) translateY(-26px);opacity:0;}}
+  </style>
+  <g class="gdzsb-g">
+    <line class="gdzsb-ray" x1="256" y1="208" x2="256" y2="76"/>
+    <line class="gdzsb-ray" x1="289.9" y1="222.1" x2="383.3" y2="128.7"/>
+    <line class="gdzsb-ray" x1="304" y1="256" x2="436" y2="256"/>
+    <line class="gdzsb-ray" x1="289.9" y1="289.9" x2="383.3" y2="383.3"/>
+    <line class="gdzsb-ray" x1="256" y1="304" x2="256" y2="436"/>
+    <line class="gdzsb-ray" x1="222.1" y1="289.9" x2="128.7" y2="383.3"/>
+    <line class="gdzsb-ray" x1="208" y1="256" x2="76" y2="256"/>
+    <line class="gdzsb-ray" x1="222.1" y1="222.1" x2="128.7" y2="128.7"/>
+    <line class="gdzsb-ray" x1="279" y1="215" x2="345" y2="99"/>
+    <line class="gdzsb-ray" x1="297" y1="279" x2="413" y2="345"/>
+    <line class="gdzsb-ray" x1="233" y1="297" x2="167" y2="413"/>
+    <line class="gdzsb-ray" x1="215" y1="233" x2="99" y2="167"/>
+  </g>
+  <circle class="gdzsb-ring" cx="256" cy="256" r="150"/>
+  <circle class="gdzsb-core" cx="256" cy="256" r="74" fill="#fde68a"/>
+  <circle class="gdzsb-core" cx="256" cy="256" r="42" fill="#fffdf0"/>
+  <circle class="gdzsb-spark" cx="256" cy="150" r="7"/>
+  <circle class="gdzsb-spark" cx="362" cy="256" r="7"/>
+  <circle class="gdzsb-spark" cx="256" cy="362" r="7"/>
+  <circle class="gdzsb-spark" cx="150" cy="256" r="7"/>
+</svg>

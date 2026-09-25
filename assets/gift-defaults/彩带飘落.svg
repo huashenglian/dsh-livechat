@@ -1,0 +1,24 @@
+<!-- dsh-livechat bundled gift effect "彩带飘落" (confetti fall) — self-drawn, MIT. 512x512, ~3.4s one-shot. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <style>
+    .gdzcf-p{transform-box:fill-box;transform-origin:50% 50%;animation:gdzcf-fall 3.4s cubic-bezier(.35,.1,.65,.9) 1 both;}
+    @keyframes gdzcf-fall{0%{transform:translateY(-40px) rotate(0deg);opacity:0;}10%{opacity:1;}85%{opacity:1;}100%{transform:translateY(600px) rotate(680deg);opacity:0;}}
+  </style>
+  <rect class="gdzcf-p" style="animation-delay:0s" x="20" y="-40" width="12" height="26" rx="3" fill="#f87171"/>
+  <rect class="gdzcf-p" style="animation-delay:.2s" x="58" y="-70" width="14" height="22" rx="3" fill="#fb923c"/>
+  <rect class="gdzcf-p" style="animation-delay:.4s" x="96" y="-30" width="11" height="28" rx="3" fill="#fbbf24"/>
+  <rect class="gdzcf-p" style="animation-delay:.6s" x="134" y="-60" width="13" height="24" rx="3" fill="#4ade80"/>
+  <rect class="gdzcf-p" style="animation-delay:.8s" x="172" y="-45" width="12" height="26" rx="3" fill="#38bdf8"/>
+  <rect class="gdzcf-p" style="animation-delay:1s" x="210" y="-80" width="15" height="22" rx="3" fill="#a78bfa"/>
+  <rect class="gdzcf-p" style="animation-delay:1.2s" x="248" y="-35" width="11" height="28" rx="3" fill="#f472b6"/>
+  <rect class="gdzcf-p" style="animation-delay:1.4s" x="286" y="-65" width="13" height="24" rx="3" fill="#22d3ee"/>
+  <rect class="gdzcf-p" style="animation-delay:1.6s" x="324" y="-40" width="12" height="26" rx="3" fill="#f87171"/>
+  <rect class="gdzcf-p" style="animation-delay:.3s" x="362" y="-55" width="14" height="22" rx="3" fill="#4ade80"/>
+  <rect class="gdzcf-p" style="animation-delay:.7s" x="400" y="-30" width="11" height="28" rx="3" fill="#fbbf24"/>
+  <rect class="gdzcf-p" style="animation-delay:1.1s" x="438" y="-75" width="13" height="24" rx="3" fill="#a78bfa"/>
+  <rect class="gdzcf-p" style="animation-delay:1.5s" x="476" y="-45" width="12" height="26" rx="3" fill="#38bdf8"/>
+  <rect class="gdzcf-p" style="animation-delay:.9s" x="60" y="-90" width="15" height="22" rx="3" fill="#f472b6"/>
+  <circle class="gdzcf-p" style="animation-delay:1.3s" cx="150" cy="-50" r="7" fill="#fbbf24"/>
+  <circle class="gdzcf-p" style="animation-delay:.5s" cx="300" cy="-70" r="7" fill="#38bdf8"/>
+  <circle class="gdzcf-p" style="animation-delay:1.7s" cx="430" cy="-35" r="7" fill="#f472b6"/>
+</svg>

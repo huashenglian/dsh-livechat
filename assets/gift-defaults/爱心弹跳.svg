@@ -1,0 +1,22 @@
+<!-- dsh-livechat bundled gift effect "爱心弹跳" (heart bounce) — self-drawn, MIT. 512x512, ~2.6s one-shot. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gdzht-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff9ec4"/>
+      <stop offset="1" stop-color="#f43f7a"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .gdzht-main{transform-box:view-box;transform-origin:50% 55%;animation:gdzht-bounce 2.6s cubic-bezier(.3,.7,.3,1) 1 both;fill:url(#gdzht-grad);filter:drop-shadow(0 8px 18px rgba(244,63,122,.45));}
+    .gdzht-mini{transform-box:view-box;transform-origin:50% 50%;animation:gdzht-rise 2.6s ease-out 1 both;fill:#ffb3d1;opacity:.9;}
+    .gdzht-glow{transform-box:view-box;transform-origin:50% 55%;animation:gdzht-glow 2.6s ease-out 1 both;fill:#ffd9e8;opacity:.55;}
+    @keyframes gdzht-bounce{0%{transform:scale(.15);opacity:0;}18%{transform:scale(1.16);opacity:1;}40%{transform:scale(.9);}58%{transform:scale(1.06);}74%{transform:scale(.98);}88%{transform:scale(1.01);}100%{transform:scale(1);opacity:1;}}
+    @keyframes gdzht-rise{0%{transform:translateY(20px) scale(.2);opacity:0;}25%{opacity:.95;}100%{transform:translateY(-190px) scale(1);opacity:0;}}
+    @keyframes gdzht-glow{0%{transform:scale(.4);opacity:0;}30%{opacity:.5;}100%{transform:scale(1.6);opacity:0;}}
+  </style>
+  <circle class="gdzht-glow" cx="256" cy="256" r="180"/>
+  <path class="gdzht-main" d="M256 420 C150 350 80 280 80 200 C80 150 120 120 165 120 C205 120 238 145 256 180 C274 145 307 120 347 120 C392 120 432 150 432 200 C432 280 362 350 256 420 Z"/>
+  <g transform="translate(60 205) scale(.5)"><path class="gdzht-mini" style="animation-delay:.45s" d="M120 330 c-18 -14 -40 -32 -40 -56 c0 -16 13 -28 29 -28 c12 0 21 6 27 15 c6 -9 15 -15 27 -15 c16 0 29 12 29 28 c0 24 -22 42 -40 56 z"/></g>
+  <g transform="translate(370 175) scale(.5)"><path class="gdzht-mini" style="animation-delay:.7s" d="M120 330 c-18 -14 -40 -32 -40 -56 c0 -16 13 -28 29 -28 c12 0 21 6 27 15 c6 -9 15 -15 27 -15 c16 0 29 12 29 28 c0 24 -22 42 -40 56 z"/></g>
+  <g transform="translate(150 120) scale(.42)"><path class="gdzht-mini" style="animation-delay:.95s" d="M120 330 c-18 -14 -40 -32 -40 -56 c0 -16 13 -28 29 -28 c12 0 21 6 27 15 c6 -9 15 -15 27 -15 c16 0 29 12 29 28 c0 24 -22 42 -40 56 z"/></g>
+</svg>

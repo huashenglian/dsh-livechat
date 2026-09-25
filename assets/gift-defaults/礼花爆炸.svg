@@ -1,0 +1,29 @@
+<!-- dsh-livechat bundled gift effect "礼花爆炸" (firework burst) — self-drawn, MIT. 512x512, ~3.0s one-shot. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <style>
+    .gdzfw-p{transform-box:view-box;transform-origin:50% 50%;animation:gdzfw-burst 3s cubic-bezier(.2,.7,.3,1) 1 both;}
+    .gdzfw-flash{transform-box:view-box;transform-origin:50% 50%;animation:gdzfw-flash 3s ease-out 1 both;fill:#fff7cc;}
+    .gdzfw-ring{transform-box:view-box;transform-origin:50% 50%;animation:gdzfw-ring 3s ease-out 1 both;fill:none;stroke:#fde68a;stroke-width:5;}
+    @keyframes gdzfw-burst{0%{transform:translateY(0) scale(0);opacity:0;}12%{opacity:1;}55%{opacity:1;}100%{transform:translateY(-215px) scale(.25);opacity:0;}}
+    @keyframes gdzfw-flash{0%{transform:scale(.05);opacity:0;}18%{transform:scale(1.35);opacity:1;}55%{opacity:.5;}100%{transform:scale(.4);opacity:0;}}
+    @keyframes gdzfw-ring{0%{transform:scale(.1);opacity:0;}20%{opacity:.9;}100%{transform:scale(1.7);opacity:0;}}
+  </style>
+  <circle class="gdzfw-ring" cx="256" cy="256" r="170"/>
+  <g transform="rotate(0 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#f87171"/></g>
+  <g transform="rotate(22.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#fb923c"/></g>
+  <g transform="rotate(45 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#fbbf24"/></g>
+  <g transform="rotate(67.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#4ade80"/></g>
+  <g transform="rotate(90 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#38bdf8"/></g>
+  <g transform="rotate(112.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#a78bfa"/></g>
+  <g transform="rotate(135 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#f472b6"/></g>
+  <g transform="rotate(157.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#22d3ee"/></g>
+  <g transform="rotate(180 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#f87171"/></g>
+  <g transform="rotate(202.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#fb923c"/></g>
+  <g transform="rotate(225 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#fbbf24"/></g>
+  <g transform="rotate(247.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#4ade80"/></g>
+  <g transform="rotate(270 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#38bdf8"/></g>
+  <g transform="rotate(292.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#a78bfa"/></g>
+  <g transform="rotate(315 256 256)"><circle class="gdzfw-p" cx="256" cy="256" r="8" fill="#f472b6"/></g>
+  <g transform="rotate(337.5 256 256)"><circle class="gdzfw-p" style="animation-delay:.05s" cx="256" cy="256" r="8" fill="#22d3ee"/></g>
+  <circle class="gdzfw-flash" cx="256" cy="256" r="70"/>
+</svg>
