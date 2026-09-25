@@ -20,6 +20,8 @@ import {
   toPublicItem,
   kindForExt,
   uid,
+  sanitizeSvg,
+  SVG_MAX_BYTES,
 } from '../lib/gift-lib.js'
 
 // Isolated temp "DSH_HOME" per test — never touches the real ~/.dsh.
@@ -317,4 +319,144 @@ test('toPublicItem exposes the public shape', () => {
   assert.equal(p.weight, 3)
   assert.equal(p.folderId, null)
   assert.equal(p.url, '/api/danmaku/gift/file?id=g_1')
+})
+
+// ---------------- sanitizeSvg (whitelist sanitizer) ----------------
+// Structural danger scan — looks at tag/attr boundaries, not one literal.
+function assertNoDanger(svg) {
+  assert.doesNotMatch(svg, /<\s*script\b/i, 'script start tag')
+  assert.doesNotMatch(svg, /<\s*\/\s*script\b/i, 'script end tag')
+  assert.doesNotMatch(svg, /<\s*foreignobject\b/i, 'foreignObject')
+  assert.doesNotMatch(svg, /<\s*(iframe|embed|object)\b/i, 'embedded frame/object')
+  assert.doesNotMatch(svg, /\son[a-z]+\s*=/i, 'on* event attribute')
+  assert.doesNotMatch(svg, /javascript\s*:/i, 'javascript: URL')
+  assert.doesNotMatch(svg, /@import/i, 'CSS @import')
+  assert.doesNotMatch(svg, /url\s*\(\s*['"]?\s*(https?:)?\/\//i, 'external url()')
+}
+
+const MALICIOUS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)in" width="10">
+  <script>alert('xss')</script>
+  <foreignObject><div>html</div></foreignObject>
+  <a xlink:href="javascript:alert(2)">click</a>
+  <use href="http://evil.example/x.svg#a"/>
+  <style>@import url("http://evil.example/a.css"); .x{background:url(https://evil.example/b.png)} .y{fill:url(#grad)} .z{fill:url(data:image/png;base64,AAA)}</style>
+  <rect width="1" height="1" style="fill:url(http://evil.example/c.png)" OnClick="alert(3)"/>
+  <animate attributeName="x" dur="1s"/>
+</svg>`
+
+test('sanitizeSvg strips <script> element AND its content', () => {
+  const r = sanitizeSvg('<svg><script>alert(1)</script><rect/></svg>')
+  assert.equal(r.ok, true)
+  assert.doesNotMatch(r.svg, /<\s*script\b/i)
+  assert.doesNotMatch(r.svg, /<\s*\/\s*script\b/i)
+  assert.equal(r.svg.includes('alert(1)'), false)
+  assert.match(r.svg, /<rect\/?>/i)
+})
+
+test('sanitizeSvg strips all on* attrs incl case + namespace variants', () => {
+  const r = sanitizeSvg(
+    '<svg><rect onload="a" ONLOAD="b" OnClick="c" onmouseover="d" onload="e" xlink:onload="f" xml:onclick="g"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assertNoDanger(r.svg)
+  assert.match(r.svg, /<rect\/?>/i)
+})
+
+test('sanitizeSvg strips <foreignObject>/<iframe>/<embed>/<object> with content', () => {
+  const r = sanitizeSvg(
+    '<svg><foreignObject><script>x</script><div>h</div></foreignObject><iframe src="http://e/x"></iframe><embed src="http://e/y"/><object data="z"></object><rect/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assertNoDanger(r.svg)
+  assert.equal(r.svg.includes('x'), false)
+  assert.match(r.svg, /<rect\/?>/i)
+})
+
+test('sanitizeSvg strips javascript: URLs incl mixed case and entity tricks', () => {
+  const r = sanitizeSvg(
+    '<svg><a xlink:href="JaVaScRiPt:alert(1)">a</a><a xlink:href="java&#115;cript:alert(2)">b</a><a xlink:href="javascript	:alert(3)">c</a></svg>'
+  )
+  assert.equal(r.ok, true)
+  assertNoDanger(r.svg)
+})
+
+test('sanitizeSvg drops external href/xlink:href (http/https/protocol-relative)', () => {
+  const r = sanitizeSvg(
+    '<svg><use href="http://evil.example/a.svg#x"/><use xlink:href="https://evil.example/b.svg#y"/><use xlink:href="//evil.example/c.svg#z"/><use href="#local"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.equal(r.svg.includes('evil.example'), false)
+  assert.match(r.svg, /href="#local"/)
+})
+
+test('sanitizeSvg strips <style> @import and external url(), keeps #/data: url()', () => {
+  const r = sanitizeSvg(
+    '<svg><style>@import url("http://evil.example/a.css"); .x{background:url(https://evil.example/b.png)} .y{fill:url(#grad)} .z{mask:url(data:image/png;base64,AAA)}</style></svg>'
+  )
+  assert.equal(r.ok, true)
+  assertNoDanger(r.svg)
+  assert.equal(r.svg.includes('evil.example'), false)
+  assert.match(r.svg, /url\(#grad\)/)
+  assert.match(r.svg, /url\(data:image\/png/)
+})
+
+test('sanitizeSvg sanitizes style= attribute, keeps internal/data urls', () => {
+  const r = sanitizeSvg(
+    '<svg><rect style="fill:url(http://evil.example/c.png)"/><rect style="fill:url(#grad);mask:url(data:image/svg+xml;base64,AA)"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assertNoDanger(r.svg)
+  assert.equal(r.svg.includes('evil.example'), false)
+  assert.match(r.svg, /url\(#grad\)/)
+  assert.match(r.svg, /url\(data:image\/svg\+xml/)
+})
+
+test('sanitizeSvg preserves whitelisted animate family', () => {
+  const r = sanitizeSvg(
+    '<svg><animate attributeName="x" dur="1s"/><animateTransform attributeName="transform" type="rotate" dur="1s"/><animateMotion dur="2s"/><set attributeName="fill" to="red"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.match(r.svg, /<animate\b/i)
+  assert.match(r.svg, /<animateTransform\b/i)
+  assert.match(r.svg, /<animateMotion\b/i)
+  assert.match(r.svg, /<set\b/i)
+})
+
+test('sanitizeSvg preserves internal use + defs/gradients/clipPath/mask/filter', () => {
+  const r = sanitizeSvg(
+    '<svg><defs><linearGradient id="g"><stop offset="0" stop-color="#fff"/></linearGradient><radialGradient id="r"/><clipPath id="c"/><mask id="m"/><filter id="f"/></defs><use href="#g"/><rect fill="url(#g)"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.match(r.svg, /<linearGradient\b/)
+  assert.match(r.svg, /<clipPath\b/)
+  assert.match(r.svg, /<mask\b/)
+  assert.match(r.svg, /<filter\b/)
+  assert.match(r.svg, /<use href="#g"/)
+})
+
+test('sanitizeSvg happy: full malicious sample has no dangerous nodes, safe nodes survive', () => {
+  const r = sanitizeSvg(MALICIOUS_SVG)
+  assert.equal(r.ok, true)
+  assertNoDanger(r.svg)
+  assert.match(r.svg, /<svg\b/)
+  assert.match(r.svg, /<rect\b/i)
+  assert.match(r.svg, /<animate\b/i)
+  // sanitizer is idempotent — second pass yields the same output
+  const again = sanitizeSvg(r.svg)
+  assert.equal(again.ok, true)
+  assert.equal(again.svg, r.svg)
+})
+
+test('sanitizeSvg failure: >512KB input rejected with null svg + reason', () => {
+  const huge = 'a'.repeat(SVG_MAX_BYTES + 1)
+  const r = sanitizeSvg(huge)
+  assert.equal(r.ok, false)
+  assert.equal(r.svg, null)
+  assert.equal(r.reason, 'too_large')
+})
+
+test('sanitizeSvg malformed input (unclosed tag) does not throw or leak script', () => {
+  const r = sanitizeSvg('<svg><rect onload="a" <script>alert(1)')
+  assert.equal(r.ok, true)
+  assertNoDanger(r.svg)
 })
