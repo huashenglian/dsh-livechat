@@ -22,6 +22,9 @@ import {
   uid,
   sanitizeSvg,
   SVG_MAX_BYTES,
+  clampGiftConfig,
+  GIFT_DEFAULTS,
+  GIFT_POSITIONS,
 } from '../lib/gift-lib.js'
 
 // Isolated temp "DSH_HOME" per test — never touches the real ~/.dsh.
@@ -459,4 +462,204 @@ test('sanitizeSvg malformed input (unclosed tag) does not throw or leak script',
   const r = sanitizeSvg('<svg><rect onload="a" <script>alert(1)')
   assert.equal(r.ok, true)
   assertNoDanger(r.svg)
+})
+
+// ---------------- clampGiftConfig (todo 6: gift config schema) ----------------
+// The listed key set is also the contract index.js/client.js mirror — keep the
+// two clamps in lockstep with this list.
+const GIFT_KEYS = [
+  'giftEnabled', 'giftRoomId', 'giftTemplate', 'giftSenders', 'giftBindings',
+  'giftTrigger', 'giftMaxConcurrent', 'giftShowSender', 'giftLayout', 'giftMaxAssetMB',
+]
+const sortedKeys = (o) => Object.keys(o).sort().join(',')
+
+test('clampGiftConfig defaults: empty/base-less input yields exact gift defaults (master OFF, room empty)', () => {
+  const out = clampGiftConfig({}, {})
+  assert.equal(sortedKeys(out), [...GIFT_KEYS].sort().join(','))
+  assert.deepEqual(out, GIFT_DEFAULTS)
+  assert.equal(out.giftEnabled, false)
+  assert.equal(out.giftRoomId, '')
+  assert.equal(out.giftTemplate, '{user} 送出了 {gift}')
+  assert.deepEqual(out.giftSenders, [])
+  assert.deepEqual(out.giftBindings, {})
+  assert.deepEqual(out.giftTrigger, { manual: true, random: false, probability: 0.05, minMs: 30000, maxMs: 120000 })
+  assert.equal(out.giftMaxConcurrent, 2)
+  assert.equal(out.giftShowSender, true)
+  assert.deepEqual(out.giftLayout, { roll: 100, top: 0, bottom: 0 })
+  assert.equal(out.giftMaxAssetMB, 8)
+  // non-object / null partial must not throw and must still yield defaults
+  assert.deepEqual(clampGiftConfig(null, null), GIFT_DEFAULTS)
+  assert.deepEqual(clampGiftConfig(undefined, undefined), GIFT_DEFAULTS)
+})
+
+test('clampGiftConfig numeric bounds: out-of-range values clamp, not reject', () => {
+  const out = clampGiftConfig({
+    giftMaxConcurrent: 999,
+    giftMaxAssetMB: 0,
+    giftTrigger: { probability: 2, minMs: 1, maxMs: 99_999_999 },
+    giftBindings: { g1: { scale: 9, durationMs: 999_999 } },
+    giftLayout: { roll: 500, top: -3, bottom: 42 },
+  }, {})
+  assert.equal(out.giftMaxConcurrent, 10)
+  assert.equal(out.giftMaxAssetMB, 1)
+  assert.equal(out.giftTrigger.probability, 1)
+  assert.equal(out.giftTrigger.minMs, 1000)
+  assert.equal(out.giftTrigger.maxMs, 3600000)
+  assert.equal(out.giftBindings.g1.scale, 2)
+  assert.equal(out.giftBindings.g1.durationMs, 10000)
+  assert.equal(out.giftLayout.roll, 100)
+  assert.equal(out.giftLayout.top, 0)
+  assert.equal(out.giftLayout.bottom, 42)
+  // low side of the same ranges
+  const lo = clampGiftConfig({
+    giftMaxConcurrent: -5,
+    giftMaxAssetMB: -1,
+    giftTrigger: { probability: -1, minMs: -1, maxMs: -1 },
+    giftLayout: { roll: -1 },
+  }, {})
+  assert.equal(lo.giftMaxConcurrent, 1)
+  assert.equal(lo.giftMaxAssetMB, 1)
+  assert.equal(lo.giftTrigger.probability, 0)
+  assert.equal(lo.giftTrigger.minMs, 1000)
+  assert.equal(lo.giftTrigger.maxMs, 1000) // never below minMs
+  assert.equal(lo.giftLayout.roll, 0)
+})
+
+test('clampGiftConfig malformed types: strings/arrays/objects in the wrong slot fall back, never throw', () => {
+  const out = clampGiftConfig({
+    giftEnabled: 'true', // strict bool: only === true enables
+    giftMaxConcurrent: 'lots',
+    giftMaxAssetMB: 'big',
+    giftSenders: { name: 'x' }, // object, not array
+    giftBindings: [], // array, not map
+    giftTrigger: [], // array, not object
+    giftLayout: 'roll', // string, not object
+    giftTemplate: 12345, // number coerced to string
+  }, {})
+  assert.equal(out.giftEnabled, false)
+  assert.equal(out.giftMaxConcurrent, 2)
+  assert.equal(out.giftMaxAssetMB, 8)
+  assert.deepEqual(out.giftSenders, [])
+  assert.deepEqual(out.giftBindings, {})
+  assert.deepEqual(out.giftTrigger, GIFT_DEFAULTS.giftTrigger)
+  assert.deepEqual(out.giftLayout, GIFT_DEFAULTS.giftLayout)
+  assert.equal(out.giftTemplate, '12345')
+  assert.equal(clampGiftConfig({ giftEnabled: true }, {}).giftEnabled, true)
+  assert.equal(clampGiftConfig({ giftShowSender: 'no' }, {}).giftShowSender, true)
+  assert.equal(clampGiftConfig({ giftShowSender: false }, {}).giftShowSender, false)
+})
+
+test('clampGiftConfig NaN/Infinity: non-finite numbers fall back to defaults', () => {
+  const out = clampGiftConfig({
+    giftMaxConcurrent: NaN,
+    giftMaxAssetMB: Infinity,
+    giftTrigger: { probability: -Infinity, minMs: NaN, maxMs: Infinity },
+    giftBindings: { g1: { scale: NaN, durationMs: Infinity } },
+    giftLayout: { roll: NaN, top: Infinity },
+  }, {})
+  assert.equal(out.giftMaxConcurrent, 2)
+  assert.equal(out.giftMaxAssetMB, 8)
+  assert.equal(out.giftTrigger.probability, 0.05)
+  assert.equal(out.giftTrigger.minMs, 30000)
+  assert.equal(out.giftTrigger.maxMs, 120000)
+  assert.equal(out.giftBindings.g1.scale, 1)
+  assert.equal(out.giftBindings.g1.durationMs, 3000)
+  assert.equal(out.giftLayout.roll, 100)
+  assert.equal(out.giftLayout.top, 0)
+})
+
+test('clampGiftConfig string caps: room id is digits-only+short, template/name/assetId truncated', () => {
+  const out = clampGiftConfig({
+    giftRoomId: ' 12 34-56 ',
+    giftTemplate: 'T'.repeat(500),
+    giftSenders: [{ name: 'N'.repeat(100), weight: 3 }],
+    giftBindings: { ['k'.repeat(100)]: { assetId: 'a'.repeat(200) } },
+  }, {})
+  assert.equal(out.giftRoomId, '123456')
+  assert.equal(out.giftTemplate.length, 100)
+  assert.equal(out.giftSenders[0].name.length, 24)
+  const bindingKey = Object.keys(out.giftBindings)[0]
+  assert.equal(bindingKey.length, 40)
+  assert.equal(out.giftBindings[bindingKey].assetId.length, 80)
+  // a non-numeric room id becomes empty, never leaves junk for a URL
+  assert.equal(clampGiftConfig({ giftRoomId: 'abc' }, {}).giftRoomId, '')
+  // blank template falls back to the default
+  assert.equal(clampGiftConfig({ giftTemplate: '   ' }, {}).giftTemplate, GIFT_DEFAULTS.giftTemplate)
+})
+
+test('clampGiftConfig array caps: senders <=50, unnamed/non-object dropped; bindings <=2000', () => {
+  const senders = []
+  for (let i = 0; i < 60; i++) senders.push({ name: 's' + i, weight: 1 })
+  const out = clampGiftConfig({ giftSenders: senders }, {})
+  assert.equal(out.giftSenders.length, 50)
+  const messy = clampGiftConfig({ giftSenders: [{ name: '' }, null, 42, { name: 'ok', weight: 5 }, { name: 'z' }] }, {})
+  assert.deepEqual(messy.giftSenders, [{ name: 'ok', weight: 5 }, { name: 'z', weight: 1 }])
+
+  const many = {}
+  for (let i = 0; i < 2100; i++) many['g' + i] = { assetId: 'a' + i }
+  const capped = clampGiftConfig({ giftBindings: many }, {})
+  assert.equal(Object.keys(capped.giftBindings).length, 2000)
+})
+
+test('clampGiftConfig enum fields: invalid position falls back to center, valid ones survive', () => {
+  assert.ok(GIFT_POSITIONS.includes('center'))
+  const out = clampGiftConfig({
+    giftBindings: {
+      a: { assetId: 'x', position: 'diagonal' },
+      b: { assetId: 'y', position: 'top-right' },
+      c: { position: 7 },
+    },
+  }, {})
+  assert.equal(out.giftBindings.a.position, 'center')
+  assert.equal(out.giftBindings.b.position, 'top-right')
+  assert.equal(out.giftBindings.a.loop, false)
+  assert.equal(out.giftBindings.c.position, 'center')
+  assert.equal(out.giftBindings.c.assetId, '')
+})
+
+test('clampGiftConfig nested trigger+layout: partial nested objects merge with defaults, maxMs >= minMs', () => {
+  const out = clampGiftConfig({
+    giftTrigger: { random: true },
+    giftLayout: { top: 60 },
+  }, {})
+  assert.deepEqual(out.giftTrigger, { manual: true, random: true, probability: 0.05, minMs: 30000, maxMs: 120000 })
+  assert.deepEqual(out.giftLayout, { roll: 100, top: 60, bottom: 0 })
+  const inverted = clampGiftConfig({ giftTrigger: { minMs: 100000, maxMs: 5000 } }, {})
+  assert.equal(inverted.giftTrigger.minMs, 100000)
+  assert.equal(inverted.giftTrigger.maxMs, 100000)
+  // base supplies the fallback when the partial omits a gift field
+  const fromBase = clampGiftConfig({ giftEnabled: true }, { giftRoomId: '98765', giftMaxConcurrent: 7 })
+  assert.equal(fromBase.giftRoomId, '98765')
+  assert.equal(fromBase.giftMaxConcurrent, 7)
+})
+
+test('clampGiftConfig unknown keys: dropped from both partial and base; output is gift-only', () => {
+  const out = clampGiftConfig(
+    { giftNope: 1, giftRoomId: '123', enabled: false, llmModel: 'x' },
+    { enabled: true, giftAlsoNo: 2, giftMaxConcurrent: 3 },
+  )
+  assert.equal(sortedKeys(out), [...GIFT_KEYS].sort().join(','))
+  assert.equal('giftNope' in out, false)
+  assert.equal('enabled' in out, false)
+  assert.equal('llmModel' in out, false)
+  assert.equal('giftAlsoNo' in out, false)
+  assert.equal(out.giftRoomId, '123')
+  assert.equal(out.giftMaxConcurrent, 3)
+})
+
+test('clampGiftConfig does not mutate partial/base and is idempotent', () => {
+  const partial = { giftTrigger: { probability: 9 }, giftSenders: [{ name: 'a', weight: 2 }] }
+  const base = { giftLayout: { roll: 1, top: 2, bottom: 3 } }
+  const pBefore = JSON.parse(JSON.stringify(partial))
+  const bBefore = JSON.parse(JSON.stringify(base))
+  const once = clampGiftConfig(partial, base)
+  assert.deepEqual(partial, pBefore)
+  assert.deepEqual(base, bBefore)
+  assert.deepEqual(clampGiftConfig(once, {}), once)
+  // a null-prototype map must not blow up the binding walk
+  const hostile = Object.create(null)
+  hostile.giftBindings = Object.create(null)
+  hostile.giftBindings.g1 = { position: 'random' }
+  const out = clampGiftConfig(hostile, {})
+  assert.equal(out.giftBindings.g1.position, 'random')
 })
