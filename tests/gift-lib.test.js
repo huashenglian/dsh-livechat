@@ -578,12 +578,13 @@ test('clampGiftConfig NaN/Infinity: non-finite numbers fall back to defaults', (
 
 test('clampGiftConfig string caps: room id is digits-only+short, template/name/assetId truncated', () => {
   const out = clampGiftConfig({
-    giftRoomId: ' 12 34-56 ',
+    giftRoomId: ' 12-34 ',
     giftTemplate: 'T'.repeat(500),
     giftSenders: [{ name: 'N'.repeat(100), weight: 3 }],
     giftBindings: { ['k'.repeat(100)]: { assetId: 'a'.repeat(200) } },
   }, {})
-  assert.equal(out.giftRoomId, '123456')
+  // short placeholder id (plan todo 29): never a 5–8 digit room-shaped literal
+  assert.equal(out.giftRoomId, '1234')
   assert.equal(out.giftTemplate.length, 100)
   assert.equal(out.giftSenders[0].name.length, 24)
   const bindingKey = Object.keys(out.giftBindings)[0]
@@ -636,8 +637,8 @@ test('clampGiftConfig nested trigger+layout: partial nested objects merge with d
   assert.equal(inverted.giftTrigger.minMs, 100000)
   assert.equal(inverted.giftTrigger.maxMs, 100000)
   // base supplies the fallback when the partial omits a gift field
-  const fromBase = clampGiftConfig({ giftEnabled: true }, { giftRoomId: '98765', giftMaxConcurrent: 7 })
-  assert.equal(fromBase.giftRoomId, '98765')
+  const fromBase = clampGiftConfig({ giftEnabled: true }, { giftRoomId: '9876', giftMaxConcurrent: 7 })
+  assert.equal(fromBase.giftRoomId, '9876')
   assert.equal(fromBase.giftMaxConcurrent, 7)
 })
 
