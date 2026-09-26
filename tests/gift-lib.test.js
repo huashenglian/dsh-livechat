@@ -447,6 +447,86 @@ test('sanitizeSvg preserves internal use + defs/gradients/clipPath/mask/filter',
   assert.match(r.svg, /<use href="#g"/)
 })
 
+// ---- F2-M1/m8 regression: SMIL href repoint + external url() in attrs ----
+// F2 empirically confirmed that `<use href="#a"><set attributeName="href"
+// to="https://…"/>` survived the static href-only check and made Chromium
+// fetch the attacker URL at inlined playback. The whole animation element
+// must be dropped when it targets href; URL-bearing values are rejected.
+
+test('sanitizeSvg drops <set> targeting href (F2-M1 bypass)', () => {
+  const r = sanitizeSvg(
+    '<svg><use href="#a"><set attributeName="href" to="https://example.invalid/x.svg#b"/></use></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.equal(r.svg.includes('example.invalid'), false)
+  assert.doesNotMatch(r.svg, /<set\b/i)
+  assert.match(r.svg, /<use href="#a"/)
+})
+
+test('sanitizeSvg drops <animate> targeting xlink:href / any case', () => {
+  const r = sanitizeSvg(
+    '<svg><use href="#a"><animate attributeName="xlink:href" from="#a" to="#b"/><animate attributeName="HREF" to="#c"/></use></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.doesNotMatch(r.svg, /<animate\b/i)
+  assert.doesNotMatch(r.svg, /attributeName\s*=\s*["']?[^"'>]*href/i)
+  assert.match(r.svg, /<use href="#a"/)
+})
+
+test('sanitizeSvg rejects URL-bearing from/to/values/by on SMIL (F2-M1)', () => {
+  const r = sanitizeSvg(
+    '<svg><animate attributeName="href" from="#a" to="https://x/y"/>' +
+    '<animate attributeName="opacity" values="0;https://x/y;1"/>' +
+    '<set attributeName="fill" by="//evil.example/x"/>' +
+    '<set attributeName="fill" to="red"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.equal(r.svg.includes('https://x/y'), false)
+  assert.equal(r.svg.includes('//evil.example/x'), false)
+  // benign SMIL with plain-token values still survives
+  assert.match(r.svg, /attributeName="fill" to="red"/)
+})
+
+test('sanitizeSvg rejects external url() in non-style attributes (F2-m8)', () => {
+  const r = sanitizeSvg(
+    '<svg><rect filter="url(https://x/y)" cursor="url(https://x/y)" fill="url(#grad)"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.equal(r.svg.includes('https://x/y'), false)
+  assert.doesNotMatch(r.svg, /\bfilter\s*=/i)
+  assert.doesNotMatch(r.svg, /\bcursor\s*=/i)
+  assert.match(r.svg, /fill="url\(#grad\)"/)
+})
+
+test('sanitizeSvg CSS-sanitizes style-targeting animation values (F2-M1)', () => {
+  const r = sanitizeSvg(
+    '<svg><set attributeName="style" to="fill:url(https://x/y)"/>' +
+    '<set attributeName="style" to="fill:url(#grad)"/>' +
+    '<set attributeName="opacity" to="0.5"/><animate attributeName="opacity" from="0" to="1"/></svg>'
+  )
+  assert.equal(r.ok, true)
+  assert.equal(r.svg.includes('https://x/y'), false)
+  assert.doesNotMatch(r.svg, /url\s*\(\s*['"]?\s*(https?:)?\/\//i)
+  // tighten-only: benign style/animation constructs keep working
+  assert.match(r.svg, /to="fill:url\(#grad\)"/)
+  assert.match(r.svg, /attributeName="opacity"/)
+  assert.match(r.svg, /<animate\b/i)
+})
+
+test('sanitizeSvg leaves the 5 bundled default SVGs effectively unchanged', () => {
+  const dir = new URL('../assets/gift-defaults/', import.meta.url)
+  const files = readdirSync(dir).filter((n) => n.toLowerCase().endsWith('.svg'))
+  assert.ok(files.length >= 5, 'expected >=5 bundled SVGs, got ' + files.length)
+  for (const name of files) {
+    const raw = readFileSync(new URL(name, dir), 'utf8')
+    const r = sanitizeSvg(raw)
+    assert.equal(r.ok, true, name + ': ok')
+    // comments are inert and stripped; everything else must survive verbatim
+    assert.equal(r.svg, raw.replace(/<!--[\s\S]*?-->/g, ''), name + ': effective markup unchanged')
+    assert.equal(sanitizeSvg(r.svg).svg, r.svg, name + ': idempotent')
+  }
+})
+
 test('sanitizeSvg happy: full malicious sample has no dangerous nodes, safe nodes survive', () => {
   const r = sanitizeSvg(MALICIOUS_SVG)
   assert.equal(r.ok, true)
