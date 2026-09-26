@@ -35,6 +35,7 @@ import {
   GIFT_SENDER_NAME_MAX,
   mapCatalogGift,
   GIFT_CATALOG_FIELDS,
+  mergeCatalog,
   pickGiftAnimationUrl,
   isAllowedGiftAssetUrl,
 } from '../lib/gift-lib.js'
@@ -1045,4 +1046,73 @@ test('isAllowedGiftAssetUrl: non-string / empty / garbage -> false (no throw)', 
   assert.equal(isAllowedGiftAssetUrl(42), false)
   assert.equal(isAllowedGiftAssetUrl({}), false)
   assert.doesNotThrow(() => isAllowedGiftAssetUrl(['https://i0.hdslb.com/x.gif']))
+})
+
+// ---------------------------------------------------------------------------
+// Catalog merge (todo 11).
+// mergeCatalog(existing, incoming) -> { gifts, added, skipped }. Dedupes by
+// `id` (numeric/string normalized), preserves the existing order + entries
+// verbatim, appends only genuinely new gifts, and tolerates null / non-array
+// input as empty. Existing fields are never overwritten.
+// ---------------------------------------------------------------------------
+
+test('mergeCatalog: empty base keeps incoming order, counts all as added', () => {
+  const a = { id: 1, name: 'a' }
+  const b = { id: 2, name: 'b' }
+  const r = mergeCatalog([], [a, b])
+  assert.deepEqual(r.gifts, [a, b])
+  assert.equal(r.added, 2)
+  assert.equal(r.skipped, 0)
+})
+
+test('mergeCatalog: all-duplicate keeps existing (order + fields), skips every incoming', () => {
+  const e1 = { id: 1, name: 'existing-1' }
+  const e2 = { id: 2, name: 'existing-2' }
+  const r = mergeCatalog([e1, e2], [{ id: 1, name: 'NEW-1' }, { id: 2, name: 'NEW-2' }])
+  assert.deepEqual(r.gifts, [e1, e2]) // existing wins, no field overwrite
+  assert.equal(r.gifts[0].name, 'existing-1')
+  assert.equal(r.added, 0)
+  assert.equal(r.skipped, 2)
+})
+
+test('mergeCatalog: partial-duplicate appends only new gifts after the existing ones', () => {
+  const e1 = { id: 10, name: 'x' }
+  const e2 = { id: 11, name: 'y' }
+  const n1 = { id: 12, name: 'z' }
+  const r = mergeCatalog([e1, e2], [{ id: 10, name: 'dup' }, n1])
+  assert.deepEqual(r.gifts, [e1, e2, n1])
+  assert.equal(r.added, 1)
+  assert.equal(r.skipped, 1)
+})
+
+test('mergeCatalog: id compared normalized (number vs string) across both sides', () => {
+  const r1 = mergeCatalog([{ id: 31225, name: 'num' }], [{ id: '31225', name: 'str' }])
+  assert.equal(r1.added, 0)
+  assert.equal(r1.skipped, 1)
+  assert.equal(r1.gifts[0].name, 'num')
+  const r2 = mergeCatalog([{ id: '34391' }], [{ id: 34391 }])
+  assert.equal(r2.added, 0)
+  assert.equal(r2.skipped, 1)
+  assert.equal(r2.gifts.length, 1)
+})
+
+test('mergeCatalog: null / undefined / non-array treated as empty', () => {
+  const g = { id: 7 }
+  assert.deepEqual(mergeCatalog(null, [g]), { gifts: [g], added: 1, skipped: 0 })
+  assert.deepEqual(mergeCatalog(undefined, undefined), { gifts: [], added: 0, skipped: 0 })
+  assert.deepEqual(mergeCatalog('nope', 5), { gifts: [], added: 0, skipped: 0 })
+  assert.deepEqual(mergeCatalog({}, [g]), { gifts: [g], added: 1, skipped: 0 })
+  assert.deepEqual(mergeCatalog([g], null), { gifts: [g], added: 0, skipped: 0 })
+  assert.deepEqual(mergeCatalog([g], { not: 'array' }), { gifts: [g], added: 0, skipped: 0 })
+})
+
+test('mergeCatalog: illegal entries do not throw (null / primitives tolerated)', () => {
+  const good = { id: 1 }
+  assert.doesNotThrow(() => mergeCatalog([null, 5, 'x', good], [null, {}, good]))
+  const r = mergeCatalog([null, 5, 'x', good], [null, {}, good])
+  assert.equal(r.gifts.length, 2) // valid existing `good` + the id-less incoming object
+  assert.deepEqual(r.gifts[0], good)
+  assert.deepEqual(r.gifts[1], {})
+  assert.equal(r.added, 1) // the one id-less incoming object is appended as new
+  assert.equal(r.skipped, 2) // null + duplicate id 1
 })
