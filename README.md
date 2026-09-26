@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#许可证)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.5.0"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.6.0"}
 ```
 
 ---
@@ -76,7 +76,7 @@ curl http://127.0.0.1:3080/api/danmaku/health
 | **预设包与 LLM** | 三套预设包、事件触发抽样、疲劳去重、可选 LLM 生成（smart/interval/toolcall 唤醒）、风格模板 | [presets-and-llm.zh-CN.md](docs/presets-and-llm.zh-CN.md) |
 | **交互** | 拖球、悬停暂停、点击详情（复制/屏蔽/删除）、手发弹幕、热度条、欢迎与任务完成效果 | [interaction.zh-CN.md](docs/interaction.zh-CN.md) |
 | **分会话弹幕库** | 分会话 `.jsonl` 弹幕池、历史回放（衰减+点赞加权）、归档/恢复、应用内池编辑器 | [session-pools.zh-CN.md](docs/session-pools.zh-CN.md) |
-| **礼物特效** | 素材仓库（文件/SVG 粘贴/GitHub/zip 导入）、礼物目录与房间号刷新、绑定与特效参数、送礼模拟（总开关默认关、隐私零房间号） | [gift-effects.zh-CN.md](docs/gift-effects.zh-CN.md) |
+| **礼物特效** | 单入口大模态（素材仓库 / 特效位置 / 基础 / 测试）、左列「+」/「已添加」、房间号提取合并去重、默认 3 张礼物卡（总开关默认关、隐私零房间号） | [gift-effects.zh-CN.md](docs/gift-effects.zh-CN.md) |
 | **配置与 API** | 设置卡 UI、全部配置字段（默认值+范围）、完整 HTTP API 参考 | [configuration.zh-CN.md](docs/configuration.zh-CN.md) |
 
 ### 亮点

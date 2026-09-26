@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.5.0"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.6.0"}
 ```
 
 ---
@@ -76,7 +76,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | **Presets & LLM** | Three preset packs, event-triggered sampling, fatigue dedup, optional LLM generation with smart/interval/tool-call wake modes, style templates | [presets-and-llm.md](docs/presets-and-llm.md) |
 | **Interaction** | Draggable control ball, hover-pause, click-for-detail (copy / block / delete), user-sent danmaku, heat bar, welcome & task-done effects | [interaction.md](docs/interaction.md) |
 | **Session pools** | Per-session `.jsonl` danmaku pools, history replay with decay + like-boost, archive/restore, in-app pool editor | [session-pools.md](docs/session-pools.md) |
-| **Gift effects** | Asset store (file / SVG paste / GitHub / zip import), gift catalog with room-id refresh, binding + effect params, gift simulation (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
+| **Gift effects** | Single-entry modal (asset library / effect position / basics / test), left-column "+"/"Added", room-id extract-merge, 3 default gift cards (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
 | **Configuration & API** | Settings card UI, every config field with defaults/range, full HTTP API reference | [configuration.md](docs/configuration.md) |
 
 ### Highlights
