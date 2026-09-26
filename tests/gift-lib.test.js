@@ -75,7 +75,9 @@ test('kindForExt maps whitelist extensions to kinds', () => {
 test('createFolder persists a folder and returns public shape', () => {
   const home = tmpHome()
   try {
-    const f = createFolder('特效', null, home)
+    const r = createFolder('特效', null, home)
+    assert.equal(r.ok, true)
+    const f = r.folder
     assert.ok(f.id.startsWith('f_'))
     assert.equal(f.name, '特效')
     assert.equal(f.parentId, null)
@@ -90,7 +92,7 @@ test('createFolder persists a folder and returns public shape', () => {
 test('renameFolder updates name, missing folder returns not_found', () => {
   const home = tmpHome()
   try {
-    const f = createFolder('old', null, home)
+    const f = createFolder('old', null, home).folder
     const r = renameFolder(f.id, 'new', home)
     assert.equal(r.ok, true)
     assert.equal(r.folder.name, 'new')
@@ -104,8 +106,8 @@ test('renameFolder updates name, missing folder returns not_found', () => {
 test('deleteFolder refuses non-empty without force, force removes nested items+files', () => {
   const home = tmpHome()
   try {
-    const parent = createFolder('parent', null, home)
-    const child = createFolder('child', parent.id, home)
+    const parent = createFolder('parent', null, home).folder
+    const child = createFolder('child', parent.id, home).folder
     const it = addAsset({ name: 'a.svg', buffer: buf('<svg/>'), folderId: child.id, home })
     assert.ok(it)
     const file = loadGiftManifest(home).items[0].file
@@ -129,7 +131,7 @@ test('moveItems reassigns folderId and ignores unknown ids', () => {
   const home = tmpHome()
   try {
     const a = addAsset({ name: 'a.svg', buffer: buf('<svg/>'), home })
-    const f = createFolder('dest', null, home)
+    const f = createFolder('dest', null, home).folder
     const r = moveItems([a.id, 'ghost'], f.id, home)
     assert.equal(r.ok, true)
     assert.equal(r.moved, 1)
@@ -165,6 +167,37 @@ test('setWeight sets value and clamps negatives to zero', () => {
     assert.equal(setWeight(a.id, -3, home).weight, 0)
     assert.equal(setWeight('ghost', 1, home).ok, false)
   } finally {
+    cleanup(home)
+  }
+})
+
+test('gift-lib CRUD reports save failure instead of ok:true (F2-m1)', () => {
+  const home = tmpHome()
+  const realRandom = Math.random
+  try {
+    const f = createFolder('a', null, home).folder
+    const it = addAsset({ name: 'a.svg', buffer: buf('<svg/>'), home })
+    // Deterministic write failure: pin Math.random so saveGiftManifest's tmp
+    // name is predictable, then place a non-empty DIRECTORY at that exact tmp
+    // path — writeFileSync(tmp) throws on every platform and the persist fails.
+    Math.random = () => 0.5 // (0.5).toString(36) === '0.i' -> suffix 'i'
+    const tmpBlocker = join(giftDir(home), 'manifest.json.tmp-' + process.pid + '-i')
+    mkdirSync(tmpBlocker, { recursive: true })
+    writeFileSync(join(tmpBlocker, 'blocker'), 'x', 'utf8')
+    const results = [
+      ['createFolder', createFolder('b', null, home)],
+      ['renameFolder', renameFolder(f.id, 'x', home)],
+      ['deleteFolder', deleteFolder(f.id, true, home)],
+      ['moveItems', moveItems([it.id], null, home)],
+      ['deleteItems', deleteItems([it.id], home)],
+      ['setWeight', setWeight(it.id, 5, home)],
+    ]
+    for (const [name, r] of results) {
+      assert.equal(r.ok, false, name + ' must report the failed write')
+      assert.equal(r.reason, 'save_failed', name + ' reason')
+    }
+  } finally {
+    Math.random = realRandom
     cleanup(home)
   }
 })
