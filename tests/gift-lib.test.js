@@ -35,6 +35,8 @@ import {
   GIFT_SENDER_NAME_MAX,
   mapCatalogGift,
   GIFT_CATALOG_FIELDS,
+  pickGiftAnimationUrl,
+  isAllowedGiftAssetUrl,
 } from '../lib/gift-lib.js'
 
 // Isolated temp "DSH_HOME" per test — never touches the real ~/.dsh.
@@ -977,4 +979,70 @@ test('mapCatalogGift: yuan unit + alias fields + blank/garbage degrade (never th
   assert.deepEqual(Object.keys(empty).sort(), [...GIFT_CATALOG_FIELDS].sort())
   assert.doesNotThrow(() => mapCatalogGift('nope'))
   assert.doesNotThrow(() => mapCatalogGift(undefined))
+})
+
+// ---------------------------------------------------------------------------
+// Gift animation extraction (todo 5).
+// pickGiftAnimationUrl: host-side chain priority gif -> webp -> img_dynamic ->
+// img_basic, first non-blank string wins. isAllowedGiftAssetUrl: the SSRF guard
+// — https only, hostname must end with `.hdslb.com` (suffix/credential tricks
+// and protocol-relative URLs are rejected so no fetch is ever attempted).
+// ---------------------------------------------------------------------------
+
+test('pickGiftAnimationUrl: chain priority gif -> webp -> img_dynamic -> img_basic', () => {
+  assert.equal(
+    pickGiftAnimationUrl({ gif: 'g', webp: 'w', img_dynamic: 'd', img_basic: 'b' }),
+    'g'
+  )
+  assert.equal(pickGiftAnimationUrl({ webp: 'w', img_dynamic: 'd', img_basic: 'b' }), 'w')
+  assert.equal(pickGiftAnimationUrl({ img_dynamic: 'd', img_basic: 'b' }), 'd')
+  assert.equal(pickGiftAnimationUrl({ img_basic: 'b' }), 'b')
+})
+
+test('pickGiftAnimationUrl: blank/non-string slots skipped, all-empty -> null', () => {
+  assert.equal(pickGiftAnimationUrl({ gif: '', webp: 'w' }), 'w')
+  assert.equal(pickGiftAnimationUrl({ gif: null, webp: undefined, img_dynamic: 'd' }), 'd')
+  assert.equal(pickGiftAnimationUrl({ gif: 42, webp: {}, img_dynamic: 'd' }), 'd')
+  assert.equal(pickGiftAnimationUrl({ gif: '  ', webp: '  ', img_dynamic: null, img_basic: '' }), null)
+})
+
+test('pickGiftAnimationUrl: non-object / null / undefined / string / entry-missing -> null', () => {
+  assert.equal(pickGiftAnimationUrl(null), null)
+  assert.equal(pickGiftAnimationUrl(undefined), null)
+  assert.equal(pickGiftAnimationUrl('https://i0.hdslb.com/x.gif'), null)
+  assert.equal(pickGiftAnimationUrl(42), null)
+  assert.equal(pickGiftAnimationUrl({}), null)
+  assert.equal(pickGiftAnimationUrl({ name: '牛哇牛哇' }), null)
+  assert.doesNotThrow(() => pickGiftAnimationUrl([1, 2, 3]))
+})
+
+test('isAllowedGiftAssetUrl: https + `.hdslb.com` host only', () => {
+  assert.equal(isAllowedGiftAssetUrl('https://i0.hdslb.com/bfs/live/a.gif'), true)
+  assert.equal(isAllowedGiftAssetUrl('https://s1.hdslb.com/bfs/live/b.png'), true)
+  assert.equal(isAllowedGiftAssetUrl('https://i0.hdslb.com/bfs/live/c.webp?v=1'), true)
+  assert.equal(isAllowedGiftAssetUrl('https://hdslb.com/x.gif'), false) // bare apex blocked
+})
+
+test('isAllowedGiftAssetUrl: rejects non-https, protocol-relative and host suffix tricks', () => {
+  assert.equal(isAllowedGiftAssetUrl('http://i0.hdslb.com/x.gif'), false)
+  assert.equal(isAllowedGiftAssetUrl('//i0.hdslb.com/x.gif'), false)
+  assert.equal(isAllowedGiftAssetUrl('ftp://i0.hdslb.com/x.gif'), false)
+  assert.equal(isAllowedGiftAssetUrl('javascript:alert(1)'), false)
+  assert.equal(isAllowedGiftAssetUrl('https://hdslb.com.evil.com/x.gif'), false)
+  assert.equal(isAllowedGiftAssetUrl('https://i0.hdslb.com.evil.com/x.gif'), false)
+  assert.equal(isAllowedGiftAssetUrl('https://evil.com/?x=.hdslb.com'), false)
+  assert.equal(isAllowedGiftAssetUrl('https://user:pass@i0.hdslb.com@evil.com/x.gif'), false)
+  assert.equal(isAllowedGiftAssetUrl('https://i0.hdslb.com./x.gif'), false) // trailing-dot host
+  // credentials pointed AT the real host still resolve to it
+  assert.equal(isAllowedGiftAssetUrl('https://user:pass@i0.hdslb.com/x.gif'), true)
+})
+
+test('isAllowedGiftAssetUrl: non-string / empty / garbage -> false (no throw)', () => {
+  assert.equal(isAllowedGiftAssetUrl(''), false)
+  assert.equal(isAllowedGiftAssetUrl('not a url'), false)
+  assert.equal(isAllowedGiftAssetUrl(null), false)
+  assert.equal(isAllowedGiftAssetUrl(undefined), false)
+  assert.equal(isAllowedGiftAssetUrl(42), false)
+  assert.equal(isAllowedGiftAssetUrl({}), false)
+  assert.doesNotThrow(() => isAllowedGiftAssetUrl(['https://i0.hdslb.com/x.gif']))
 })
