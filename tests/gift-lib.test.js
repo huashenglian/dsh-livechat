@@ -33,6 +33,8 @@ import {
   GIFT_ANONYMOUS_SENDER,
   GIFT_SENDERS_MAX,
   GIFT_SENDER_NAME_MAX,
+  mapCatalogGift,
+  GIFT_CATALOG_FIELDS,
 } from '../lib/gift-lib.js'
 
 // Isolated temp "DSH_HOME" per test — never touches the real ~/.dsh.
@@ -805,4 +807,61 @@ test('formatSenderBatch round-trips through parseSenderBatch', () => {
   assert.deepEqual(parseSenderBatch(text).senders, senders)
   assert.equal(formatSenderBatch(null), '')
   assert.equal(formatSenderBatch([null, { name: '' }]), '')
+})
+
+test('mapCatalogGift: API raw -> every GIFT_CATALOG_FIELD present, milli price /1000, files fallback', () => {
+  const raw = {
+    id: 999100,
+    name: '小电视飞船',
+    price: 1245000,
+    coin_type: 'gold',
+    type: 1,
+    desc: 'a gift',
+    effect_id: 42,
+    animation_frame_num: 30,
+    stay_time: 5000,
+    combo_resources_id: 7,
+    full_sc_web: 'https://x/full.webm',
+    img_basic: 'https://x/basic.png',
+    files: { gif: 'https://x/g.gif', webp: 'https://x/w.webp' },
+  }
+  const g = mapCatalogGift(raw)
+  // shape contract: all catalog fields always present (consumers never guard)
+  assert.deepEqual(Object.keys(g).sort(), [...GIFT_CATALOG_FIELDS].sort())
+  assert.equal(g.id, 999100)
+  assert.equal(g.name, '小电视飞船')
+  assert.equal(g.price, 1245) // milli-元 -> 元
+  assert.equal(g.coin_type, 'gold')
+  assert.equal(g.type, 1)
+  assert.equal(g.desc, 'a gift')
+  assert.equal(g.effect_id, 42)
+  assert.equal(g.frame_num, 30) // animation_frame_num alias
+  assert.equal(g.stay_time, 5000)
+  assert.equal(g.combo_id, 7) // combo_resources_id alias
+  assert.equal(g.full_sc_web, 'https://x/full.webm')
+  assert.equal(g.img_basic, 'https://x/basic.png')
+  assert.equal(g.gif, 'https://x/g.gif') // files.* fallback
+  assert.equal(g.webp, 'https://x/w.webp')
+  assert.equal(g.full_sc_horizontal, null) // absent -> null (not undefined)
+  assert.equal(g.img_dynamic, null)
+})
+
+test('mapCatalogGift: yuan unit + alias fields + blank/garbage degrade (never throws)', () => {
+  const g = mapCatalogGift(
+    { price: 30, effectId: 5, frame_animation_num: 12, combo_id: 3, name: '' },
+    { priceUnit: 'yuan' },
+  )
+  assert.equal(g.price, 30) // yuan: already 元, no division
+  assert.equal(g.effect_id, 5) // effectId alias
+  assert.equal(g.frame_num, 12) // frame_animation_num alias
+  assert.equal(g.combo_id, 3)
+  assert.equal(g.name, '(未命名)') // blank -> placeholder
+  assert.equal(g.id, null)
+
+  const empty = mapCatalogGift(null)
+  assert.equal(empty.price, 0)
+  assert.equal(empty.name, '(未命名)')
+  assert.deepEqual(Object.keys(empty).sort(), [...GIFT_CATALOG_FIELDS].sort())
+  assert.doesNotThrow(() => mapCatalogGift('nope'))
+  assert.doesNotThrow(() => mapCatalogGift(undefined))
 })
