@@ -15,7 +15,7 @@ The gift module has three layers:
 
 Gift effects share the danmaku overlay: effects render on their own `.dsh-gift-layer` that never intercepts pointer events; tip danmaku travel the regular tracks.
 
-A fresh install seeds **3 default gift cards** on first boot (imported offline from the bundled catalog):
+A fresh install seeds **3 default gift cards** on first boot (the gift catalog is bundled and works offline, but importing each card's animation file needs the network; offline the seed is skipped — 0 cards, retryable manually later):
 
 | Gift | ID | Card weight (= trigger-probability factor) |
 |---|---|---|
@@ -37,7 +37,7 @@ There is also a **Gifts** settings tab in the left nav (right after **Danmaku po
 The right-pane **Asset library** section is where the left column's "+" lands, and the main local-store UI:
 
 - **Bordered scroll container** — assets render as grid cards (folders + cards) inside a bordered, scrollable container; content past the height scrolls inside.
-- **Looping thumbnails** — SVG and animated-image (gif/apng/webp) thumbs remount once per shared tick (3 s) so their one-shot CSS animation replays instead of freezing blank; png/jpg stay static, SVGA keeps a type badge + hover preview.
+- **Looping thumbnails** — SVG thumbs remount once per shared tick (3 s) so their one-shot CSS animation replays instead of freezing blank; animated-image (gif/apng/webp) formats loop natively and stay a plain stable `<img>` (no periodic re-decode), png/jpg stay static, SVGA keeps a type badge + hover preview.
 - **Total-probability formula** — shown directly below the material container: `P(gift i)=total prob ×(weight_i/Σweight)`; effective only when *Random ambient* is on.
 - **Card weight = trigger probability** — each card's **weight** (0–100) is its probability factor in the weighted draw; weight 0 never triggers.
 - **Full-width import dialogs** — the four import paths (files / paste SVG / GitHub / zip) expand into full-row dialogs that never squeeze the layout.
