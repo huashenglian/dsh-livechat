@@ -28,26 +28,33 @@ A fresh install seeds **3 default gift cards** on first boot (the gift catalog i
 Settings → Plugins → Plugin config → **"Live Chat Danmaku"** card, scroll to the **Gifts** section:
 
 - **Enable gift effects** (`giftEnabled`) — the master switch, **off by default**.
-- **Open gift config…** — the single entry button, opening the large modal (gift list on the left + four modules on the right).
+- **Open gift config…** — the single entry button, opening the large modal (gift library + asset library + config).
 
-There is also a **Gifts** settings tab in the left nav (right after **Danmaku pools**). The large modal is `min(960px, 94vw)` × `min(680px, 86vh)`: the top row is a full-width **room id [input][Extract]**; the left column is the gift list; the right side is a **single scroll pane with four stacked sections** — asset library / effect position / basics / test — plus a thin anchor strip on the right (Assets / Position / Basics / Test), no menu ping-pong.
+There is also a **Gifts** settings tab in the left nav (right after **Danmaku pools**). The large modal is `min(1280px, 96vw)` × `min(760px, 88vh)`, split into three panes:
+
+- **Left (gift library)**: the Bilibili gift list, each row a "+" or a red "×" (starts at 248px, 200–400).
+- **Center (asset library)**: the local asset panel, one toolbar row on top and a width-adaptive asset grid below.
+- **Right (config)**: effect position / basics / test sections (starts at 300px, 240–420).
+
+The two pane dividers are **draggable**; widths are written to local storage (key `dsh-gift-pane-layout-v1`) and **survive page reload, reopening the modal, and restarting dsh**. There is no right-side anchor strip anymore, and no single-page four-section layout.
 
 ## Asset library
 
-The right-pane **Asset library** section is where the left column's "+" lands, and the main local-store UI:
+The center pane is the main local-store UI, with a single toolbar row on top and the asset grid below:
 
-- **Bordered scroll container** — assets render as grid cards (folders + cards) inside a bordered, scrollable container; content past the height scrolls inside.
-- **Looping thumbnails** — SVG thumbs remount once per shared tick (3 s) so their one-shot CSS animation replays instead of freezing blank; animated-image (gif/apng/webp) formats loop natively and stay a plain stable `<img>` (no periodic re-decode), png/jpg stay static, SVGA keeps a type badge + hover preview.
-- **Total-probability formula** — shown directly below the material container: `P(gift i)=total prob ×(weight_i/Σweight)`; effective only when *Random ambient* is on.
-- **Card weight = trigger probability** — each card's **weight** (0–100) is its probability factor in the weighted draw; weight 0 never triggers.
-- **Full-width import dialogs** — the four import paths (files / paste SVG / GitHub / zip) expand into full-row dialogs that never squeeze the layout.
+- **Toolbar**: room-id input (**no label**, placeholder only) + "Extract" | "Import file…" + "▾" | "New folder" | "Clear assets".
+- **Import file…**: pick files to import (through a file input).
+- **▾ menu**: three items, Paste SVG code / Import from GitHub… / Import zip…. **Paste SVG code** and **Import from GitHub…** open a **centered text-input modal** (confirm imports): SVG is a multi-line textarea; GitHub is a repo URL plus an import cap (0 = unlimited).
+- **Adaptive card density**: assets spread as a grid; how many fit per row follows the center pane's width (fewer when narrow, more when wide), each card filling its cell.
+- **Looping thumbnails**: SVG thumbs remount once per shared tick (3 s) so their one-shot CSS animation replays instead of freezing blank; animated-image (gif/apng/webp) formats loop natively and stay a plain stable `<img>` (no periodic re-decode), png/jpg stay static, SVGA keeps a type badge + hover preview.
+- **Card weight = trigger probability**: each card's **weight** (0–100) is its probability factor in the weighted draw; weight 0 never triggers.
 
 Supported extensions: `.svg`, `.svga`, `.gif`, `.apng`, `.webp`, `.png`, `.jpg`. Per-file size cap `giftMaxAssetMB` (default 8 MB, adjustable 1–64). Imports are **job-based**: the upload endpoint returns a job object and the UI polls `/api/danmaku/gift/assets/import/status` for progress. Asset files live in `$DSH_HOME/danmaku-gifts/files/` with a `manifest.json` alongside; delivery goes through `GET /api/danmaku/gift/file?id=` (Range / ETag / immutable caching).
 
 > [!NOTE]
 > Gift assets are **user property**: uninstalling the plugin never deletes them; the **Clear assets** button asks for confirmation.
 
-A left-column row's **added** state is derived **solely from the asset store**: when an asset card with `source === 'gift:<id>'` exists the row shows **"Added"**, otherwise **"+"**. Clicking "+" makes the host extract the gift animation through its whitelisted fetch (`importGift`) into a card — on success the row becomes "Added"; deleting that card makes the row **fall back to "+"**. A gift with no card **never triggers** — the draw only ever picks among **bound gifts that have a card with a positive weight**.
+A left-column row's state is derived **solely from the asset library**: when an asset card with `source === 'gift:<id>'` exists the row shows a **red "×"**, otherwise **"+"**. Clicking "+" makes the host extract the gift animation through its whitelisted fetch (`importGift`) into a card; on success the row becomes "×". Clicking "×" deletes that card and the row **falls back to "+"** (no confirmation). A gift with no card **never triggers**; the draw only ever picks among **bound gifts that have a card with a positive weight**.
 
 ## Gift catalog & room-id extraction
 
@@ -55,7 +62,7 @@ The catalog is read from `$DSH_HOME/danmaku-gifts/catalog.json`; when missing, t
 
 To **extract-merge your own** room's gift list into the catalog:
 
-1. Fill the **room id** box at the modal top — **the room id is filled in by you**; the repo and its docs always use a placeholder, e.g. `<your room ID>`.
+1. Fill the **room id** box in the center toolbar: **the room id is filled in by you**; the repo and its docs always use a placeholder, e.g. `<your room ID>`.
 2. Hit **Extract**. An empty input only shows a hint and issues **no request at all**.
 
 Behavior contract:
@@ -66,21 +73,24 @@ Behavior contract:
 
 ## Effect position
 
-With a gift selected in the left column, the right-pane **Effect position** section shows it and keeps the same interaction:
+Clicking a **material card in the center pane** shows it in the right-pane **Effect position** section:
 
-- **Position** — 8 options: `center` / `top` / `bottom` / `top-left` / `top-right` / `bottom-left` / `bottom-right` / `random` (7 presets + random).
-- **Position preview bar** — a mini frame showing the normalized anchor, updating live with the dropdown.
+- If the card comes from a gift (`source === 'gift:<id>'`) and a matching binding exists, it shows the gift name and ID with the same interaction as before:
+  - **Position**: 8 options, `center` / `top` / `bottom` / `top-left` / `top-right` / `bottom-left` / `bottom-right` / `random` (7 presets + random).
+  - **Position preview bar**: a mini frame showing the normalized anchor, updating live with the dropdown.
+- If the card is not bound to a gift (built-in or plain import), or the binding dangles (its asset card no longer exists), it shows a "not bound to a gift, position does not apply" hint and no position control.
 
-The position is written to the `position` field of `giftBindings` (keyed by gift id) with a **delta** POST, **preserving** that binding's `assetId` / `scale` / `durationMs` / `loop` (these fields still exist in the schema and keep their defaults — scale 0.25–2, duration 1–10 s — they are simply no longer edited in the UI). Binding shape: `{assetId, position, scale, durationMs, loop}`.
+Clicking a left-column gift row **no longer** opens the position panel (rows only carry "+"/"×"). The position is written to the `position` field of `giftBindings` (keyed by gift id) with a **delta** POST, **preserving** that binding's `assetId` / `scale` / `durationMs` / `loop` (these fields still exist in the schema and keep their defaults, scale 0.25–2 and duration 1–10 s, they are simply no longer edited in the UI). Binding shape: `{assetId, position, scale, durationMs, loop}`.
 
 ## Basics & test
 
-The right-pane **Basics** and **Test** sections (shows "enable the gift module first" and disables the test button while the master switch is off):
+The right-pane **Basics** and **Test** sections (shows "enable the gift module first" and disables the test button while the master switch is off), with each control on its own row:
 
-- **Random ambient** (`giftTrigger.random`) — off by default; when on it rolls `probability` (0–1, i.e. total probability) with a `minMs`/`maxMs` interval (1 s – 1 h).
-- **Tip template** (`giftTemplate`) — placeholders `{user}` (sender) and `{gift}` (gift name), max 100 chars, with a live substitution preview as you type.
-- **Sender pool** (`giftSenders`) — a weighted `{name, weight}` list, up to 50 entries, 24-char names, weights 0–100; falls back to anonymous when empty.
-- **Test now** — triggers one random gift immediately and shows the last trigger status (gift / sender / error); when there is no material to trigger it says "No gift material available (click "+" on the left first)".
+- **Total probability** (`probability`, 0–1): once the master switch is on, gifts roll at this probability with the min/max interval below. **Turning the master switch on is the random trigger**; there is no separate "random ambient" switch.
+- **Min interval / max interval**: one row each, each with a draggable slider and a **number input** on the right (in seconds, 1–3600).
+- **Tip template** (`giftTemplate`): placeholders `{user}` (sender) and `{gift}` (gift name), max 100 chars, with a live substitution preview as you type.
+- **Sender pool** (`giftSenders`): a weighted `{name, weight}` list, up to 50 entries, 24-char names, weights 0–100; falls back to anonymous when empty.
+- **Test now**: triggers one random gift immediately and shows the last trigger status (gift / sender / error); when there is no material to trigger it says "no gift material available (click "+" on the left first)".
 
 > [!NOTE]
 > The **Manual trigger** checkbox was removed from the UI; the `giftTrigger.manual` **field still exists** in the schema and defaults (on by default) — it simply has no control anymore.
