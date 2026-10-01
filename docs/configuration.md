@@ -138,7 +138,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 
 ### Gift
 
-Writes are clamped by `clampGiftConfig()` (`lib/gift-lib.js`), which returns exactly these 10 `gift*` keys and drops unknown ones (the `gift` namespace is closed). Per-field semantics: see [Gift effects](./gift-effects.md).
+Writes are clamped by `clampGiftConfig()` (`lib/gift-lib.js`), which returns exactly these 11 `gift*` keys and drops unknown ones (the `gift` namespace is closed). Per-field semantics: see [Gift effects](./gift-effects.md).
 
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
@@ -152,6 +152,7 @@ Writes are clamped by `clampGiftConfig()` (`lib/gift-lib.js`), which returns exa
 | `giftShowSender` | true | bool | Whether the tip danmaku carries the sender nickname label |
 | `giftLayout` | `{roll:100, top:0, bottom:0}` | each 0–100 | Roll/top/bottom layout weights for gift tip danmaku |
 | `giftMaxAssetMB` | 8 | 1–64 | Per-asset size cap (MB); server 413s larger uploads |
+| `giftScale` | 1 | 0.25–3 | Global size multiplier for gift effects; final size = viewport short side × 0.34 × this × asset size × binding scale |
 
 ---
 

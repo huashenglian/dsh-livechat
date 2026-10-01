@@ -138,7 +138,7 @@ UI 双语（zh/en），随宿主语言切换。
 
 ### 礼物
 
-写入时由 `clampGiftConfig()`（`lib/gift-lib.js`）裁剪，只返回这 10 个 `gift*` 键、丢弃未知键（`gift` 命名空间是封闭的）。逐字段语义见 [礼物特效](./gift-effects.zh-CN.md)。
+写入时由 `clampGiftConfig()`（`lib/gift-lib.js`）裁剪，只返回这 11 个 `gift*` 键、丢弃未知键（`gift` 命名空间是封闭的）。逐字段语义见 [礼物特效](./gift-effects.zh-CN.md)。
 
 | 字段 | 默认 | 范围/类型 | 作用 |
 |---|---|---|---|
@@ -152,6 +152,7 @@ UI 双语（zh/en），随宿主语言切换。
 | `giftShowSender` | true | 布尔 | 提示弹幕是否带送礼人昵称标签 |
 | `giftLayout` | `{roll:100, top:0, bottom:0}` | 各 0–100 | 礼物提示弹幕的滚/顶/底布局权重 |
 | `giftMaxAssetMB` | 8 | 1–64 | 单个素材大小上限（MB），服务端 413 裁剪 |
+| `giftScale` | 1 | 0.25–3 | 礼物特效全局大小倍率；最终尺寸 = 视口短边 × 0.34 × 该值 × 素材大小 × 绑定缩放 |
 
 ---
 
