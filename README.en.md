@@ -76,7 +76,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | **Presets & LLM** | Three preset packs, event-triggered sampling, fatigue dedup, optional LLM generation with smart/interval/tool-call wake modes, style templates | [presets-and-llm.md](docs/presets-and-llm.md) |
 | **Interaction** | Draggable control ball, hover-pause, click-for-detail (copy / block / delete), user-sent danmaku, heat bar, welcome & task-done effects | [interaction.md](docs/interaction.md) |
 | **Session pools** | Per-session `.jsonl` danmaku pools, history replay with decay + like-boost, archive/restore, in-app pool editor | [session-pools.md](docs/session-pools.md) |
-| **Gift effects** | Three-pane modal (gift library / asset library / config; draggable dividers with persisted widths), center toolbar (room-id extract + import ▾ + new folder + clear assets), card-click effect position, left-column "+"/red "×", 3 default gift cards (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
+| **Gift effects** | Three-pane modal (gift library / asset library / config; draggable dividers with persisted widths), center toolbar (room-id extract + import ▾ + icon size + new folder + clear assets), card-click effect position, basics row for global/asset animation size, left-column "+"/red "×", 3 default gift cards (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
 | **Configuration & API** | Settings card UI, every config field with defaults/range, full HTTP API reference | [configuration.md](docs/configuration.md) |
 
 ### Highlights

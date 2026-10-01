@@ -76,7 +76,7 @@ curl http://127.0.0.1:3080/api/danmaku/health
 | **预设包与 LLM** | 三套预设包、事件触发抽样、疲劳去重、可选 LLM 生成（smart/interval/toolcall 唤醒）、风格模板 | [presets-and-llm.zh-CN.md](docs/presets-and-llm.zh-CN.md) |
 | **交互** | 拖球、悬停暂停、点击详情（复制/屏蔽/删除）、手发弹幕、热度条、欢迎与任务完成效果 | [interaction.zh-CN.md](docs/interaction.zh-CN.md) |
 | **分会话弹幕库** | 分会话 `.jsonl` 弹幕池、历史回放（衰减+点赞加权）、归档/恢复、应用内池编辑器 | [session-pools.zh-CN.md](docs/session-pools.zh-CN.md) |
-| **礼物特效** | 三栏大模态（左礼物库 / 中素材库 / 右配置，分界线可拖动且尺寸长期记忆）、中栏工具条（房间号提取 + 导入▾ + 新建文件夹 + 清空素材）、素材卡点击显示特效位置、左列「+」/红色「×」、默认 3 张礼物卡（总开关默认关、隐私零房间号） | [gift-effects.zh-CN.md](docs/gift-effects.zh-CN.md) |
+| **礼物特效** | 三栏大模态（左礼物库 / 中素材库 / 右配置，分界线可拖动且尺寸长期记忆）、中栏工具条（房间号提取 + 导入▾ + 图标大小 + 新建文件夹 + 清空素材）、素材卡点击显示特效位置、右栏基础含全局/当前素材动画大小、左列「+」/红色「×」、默认 3 张礼物卡（总开关默认关、隐私零房间号） | [gift-effects.zh-CN.md](docs/gift-effects.zh-CN.md) |
 | **配置与 API** | 设置卡 UI、全部配置字段（默认值+范围）、完整 HTTP API 参考 | [configuration.zh-CN.md](docs/configuration.zh-CN.md) |
 
 ### 亮点
