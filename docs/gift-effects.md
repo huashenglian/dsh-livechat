@@ -42,9 +42,10 @@ The two pane dividers are **draggable**; widths are written to local storage (ke
 
 The center pane is the main local-store UI, with a single toolbar row on top and the asset grid below:
 
-- **Toolbar**: room-id input (**no label**, placeholder only) + "Extract" | "Import file…" + "▾" | "New folder" | "Clear assets".
+- **Toolbar**: room-id input (**no label**, placeholder only) + "Extract" | "Import file…" + "▾" | "Icon size" | "New folder" | "Clear assets".
 - **Import file…**: pick files to import (through a file input).
 - **▾ menu**: three items, Paste SVG code / Import from GitHub… / Import zip…. **Paste SVG code** and **Import from GitHub…** open a **centered text-input modal** (confirm imports): SVG is a multi-line textarea; GitHub is a repo URL plus an import cap (0 = unlimited).
+- **Icon size**: opens a popover below the button (slider + number input, 0.6–1.6, default 1) that live-scales the **folder and asset cards** in the grid (column width and card height follow the multiplier); click outside to dismiss; the multiplier persists in local storage (key `dsh-gift-icon-scale-v1`) across reloads/restarts.
 - **Adaptive card density**: assets spread as a grid; how many fit per row follows the center pane's width (fewer when narrow, more when wide), each card filling its cell.
 - **Looping thumbnails**: SVG thumbs remount once per shared tick (3 s) so their one-shot CSS animation replays instead of freezing blank; animated-image (gif/apng/webp) formats loop natively and stay a plain stable `<img>` (no periodic re-decode), png/jpg stay static, SVGA keeps a type badge + hover preview.
 - **Card weight = trigger probability**: each card's **weight** (0–100) is its probability factor in the weighted draw; weight 0 never triggers.
@@ -80,13 +81,15 @@ Clicking a **material card in the center pane** shows it in the right-pane **Eff
   - **Position preview bar**: a mini frame showing the normalized anchor, updating live with the dropdown.
 - If the card is not bound to a gift (built-in or plain import), or the binding dangles (its asset card no longer exists), it shows a "not bound to a gift, position does not apply" hint and no position control.
 
-Clicking a left-column gift row **no longer** opens the position panel (rows only carry "+"/"×"). The position is written to the `position` field of `giftBindings` (keyed by gift id) with a **delta** POST, **preserving** that binding's `assetId` / `scale` / `durationMs` / `loop` (these fields still exist in the schema and keep their defaults, scale 0.25–2 and duration 1–10 s, they are simply no longer edited in the UI). Binding shape: `{assetId, position, scale, durationMs, loop}`.
+Clicking a left-column gift row **no longer** opens the position panel (rows only carry "+"/"×"). The position is written to the `position` field of `giftBindings` (keyed by gift id) with a **delta** POST, **preserving** that binding's `assetId` / `scale` / `durationMs` / `loop` (these fields still exist in the schema and keep their defaults, duration 1–10 s, they are simply no longer edited in the UI). Binding shape: `{assetId, position, scale, durationMs, loop}`.
 
 ## Basics & test
 
 The right-pane **Basics** and **Test** sections (shows "enable the gift module first" and disables the test button while the master switch is off), with each control on its own row:
 
 - **Total probability** (`probability`, 0–1): once the master switch is on, gifts roll at this probability with the min/max interval below. **Turning the master switch on is the random trigger**; there is no separate "random ambient" switch.
+- **Global size** (`giftScale`, 0.25–3, default 1): one multiplier for every gift effect; multiplied with the asset-local scale and the binding scale to produce the final effect size (base = viewport short side × 0.34).
+- **Asset size** (the asset's `scale`, 0.25–3, default 1): editable only after an asset card is selected (the slider stays disabled otherwise); affects only that asset's playback size and is stored in the asset manifest.
 - **Min interval / max interval**: one row each, each with a draggable slider and a **number input** on the right (in seconds, 1–3600).
 - **Tip template** (`giftTemplate`): placeholders `{user}` (sender) and `{gift}` (gift name), max 100 chars, with a live substitution preview as you type.
 - **Sender pool** (`giftSenders`): a weighted `{name, weight}` list, up to 50 entries, 24-char names, weights 0–100; falls back to anonymous when empty.
