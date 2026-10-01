@@ -64,7 +64,7 @@ gapSec ≈ (上条宽 + 新条宽 + 间距) / 上条速度
 | `webgl2` | 已实现 | 主线程 WebGL2 instanced quads（L2） |
 | `webgl2-worker` | 已实现 | Offscreen canvas + Worker 驱动 instanced 渲染（L1） |
 
-`auto` 链按失败逐级降级：**Worker → 主线程 → DOM**。Worker 初始化抛错则尝试主线程 WebGL2，再抛错则回退 DOM。
+`auto` 链按失败逐级降级。**浏览器**为 **Worker → 主线程 → DOM**；**桌面端（Electron 壳）**跳过 Worker（自定义协议下 Worker 脚本加载风险最高），走 **主线程 WebGL2 → DOM**。两端均可手动选择任意后端，`auto` 只影响自动选择。
 
 `webgl2-main` 是**内部配置别名**：它会被接受并处理（作为合法配置解析、路由到主线程 WebGL2 渲染器、并被 `auto` 链用作中间回退），但**不在设置下拉框中列出**——UI 只列 `auto / dom / webgl2 / webgl2-worker`。需要显式固定主线程渲染器时，可在配置文件或 HTTP 补丁里使用它。
 
@@ -96,6 +96,6 @@ GPU 后端尚未在所有方面与 DOM 达到观感一致。以下是文档化�
 | `areaRatio` | 0.5 | 0.25–1.0 | 滚动轨高度比例 |
 | `layoutWeights` | 80/10/10 | 各 0–100 | 滚/顶/底生成权重 |
 | `stroke` | true | 布尔 | 白色描边提升可读性 |
-| `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器选择（`webgl2-main` 为内部别名，不在下拉框） |
+| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | 渲染器选择（`webgl2-main` 为内部别名，不在下拉框）；`auto` 按客户端自适应 |
 
 完整字段见 [configuration.md](configuration.md)。

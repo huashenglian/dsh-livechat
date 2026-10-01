@@ -64,7 +64,7 @@ The two GPU backends reuse the same business logic (spawn, collision, pause, con
 | `webgl2` | implement | Main-thread WebGL2 instanced quads (L2) |
 | `webgl2-worker` | implement | Offscreen canvas + Worker-driven instanced render (L1) |
 
-The `auto` chain degrades on failure: **Worker → main-thread → DOM**. If Worker init throws it tries main-thread WebGL2, and if that throws too it falls back to DOM.
+The `auto` chain degrades on failure. In a **browser** it is **Worker → main-thread → DOM**; on the **desktop client** (Electron shell) it skips the Worker (worker script loading under the custom protocol is the highest-risk path) and uses **main-thread WebGL2 → DOM**. Every backend stays manually selectable on both clients — `auto` only drives the automatic pick.
 
 `webgl2-main` is an **internal config alias**. It is accepted and handled (parsed as valid config, routed to the main-thread WebGL2 renderer, and used by the `auto` chain as the middle fallback), but it is **not shown in the settings dropdown** — the UI lists `auto / dom / webgl2 / webgl2-worker` only. Use it in a config file or HTTP patch when you want to pin the main-thread renderer explicitly.
 
@@ -96,6 +96,6 @@ The upgrade path follows `参考文档/danmaku-renderer-design.md` (§11 degrada
 | `areaRatio` | 0.5 | 0.25–1.0 | Roll track height fraction |
 | `layoutWeights` | 80/10/10 | 0–100 each | roll/top/bottom spawn weights |
 | `stroke` | true | bool | White text stroke for readability |
-| `renderBackend` | dom | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer selection (`webgl2-main` is an internal alias, not in the dropdown) |
+| `renderBackend` | auto | auto/dom/webgl2/webgl2-main/webgl2-worker | Renderer selection (`webgl2-main` is an internal alias, not in the dropdown); `auto` is per-client |
 
 See [configuration.md](configuration.md) for the full field reference.
