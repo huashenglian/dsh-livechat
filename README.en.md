@@ -92,6 +92,34 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 
 ---
 
+## Recent updates
+
+> Full version history lives in [`docs/version-history.md`](https://github.com/huashenglian/dsh-livechat). Highlights of the 0.6.x line:
+
+| Version | What changed |
+|---|---|
+| 0.6.0 | Gift module UX rework: single-entry modal (asset warehouse / effect position / basics / test), 3 default gift cards |
+| 0.6.1 | Weight edits apply immediately + refresh-write failures reported |
+| 0.6.2 | Floating-ball out-of-bounds clamping fixed — a persisted position can no longer hide the ball |
+| 0.6.5 | Gift modal rebuilt as three panes: draggable dividers with persisted widths, asset library moved to a center toolbar panel |
+| 0.6.6 | Gift modal polish: fixed-height cards, elastic trigger-row slider, import merged into one card |
+| 0.6.7 | Asset-card selection highlight + master-switch gating, render backend defaults to `auto` per client, dark-theme native `select` popup fix, animation / icon size, fixed danmaku leaking into the titlebar after applying a display area |
+| 0.6.8 | Three-backend window resize adaptation, viewport-ratio floating-ball repositioning, desktop titlebar exclusion |
+
+Earlier milestones also include the emoji library (imports / weights / manifest), the display-area editor, advanced danmaku (reverse scroll), and the optional LLM smart / interval / tool-call wake modes.
+
+### Desktop support
+
+**Since v0.6.8 the plugin officially supports the DeepSeek Harness desktop app (Electron):**
+
+- The floating ball never enters the Windows titlebar strip (`--dsh-windows-titlebar-height` exclusion);
+- The danmaku display area adapts to window resizes;
+- Other 0.6.8 behaviors this round: after a resize, **on-screen danmaku keep their original coordinates and finish their run** (new danmaku are born at the new size); the floating ball is repositioned by **viewport ratio** (clamping takes precedence over ratio, with a one-shot migration of legacy pixel records).
+
+![Desktop app](assets/desktop-danmaku.png)
+
+---
+
 ## Architecture
 
 ```
