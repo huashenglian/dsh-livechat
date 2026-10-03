@@ -595,7 +595,8 @@ test('sanitizeSvg malformed input (unclosed tag) does not throw or leak script',
 // two clamps in lockstep with this list.
 const GIFT_KEYS = [
   'giftEnabled', 'giftRoomId', 'giftTemplate', 'giftSenders', 'giftBindings',
-  'giftTrigger', 'giftMaxConcurrent', 'giftShowSender', 'giftLayout', 'giftMaxAssetMB',
+  'giftTrigger', 'giftMaxConcurrent', 'giftDurationSec', 'giftLoop',
+  'giftShowSender', 'giftLayout', 'giftMaxAssetMB', 'giftScale',
 ]
 const sortedKeys = (o) => Object.keys(o).sort().join(',')
 
@@ -609,7 +610,9 @@ test('clampGiftConfig defaults: empty/base-less input yields exact gift defaults
   assert.deepEqual(out.giftSenders, [])
   assert.deepEqual(out.giftBindings, {})
   assert.deepEqual(out.giftTrigger, { manual: true, random: false, probability: 0.05, minMs: 30000, maxMs: 120000 })
-  assert.equal(out.giftMaxConcurrent, 2)
+  assert.equal(out.giftMaxConcurrent, 1)
+  assert.equal(out.giftDurationSec, 3)
+  assert.equal(out.giftLoop, true)
   assert.equal(out.giftShowSender, true)
   assert.deepEqual(out.giftLayout, { roll: 100, top: 0, bottom: 0 })
   assert.equal(out.giftMaxAssetMB, 8)
@@ -649,6 +652,11 @@ test('clampGiftConfig numeric bounds: out-of-range values clamp, not reject', ()
   assert.equal(lo.giftTrigger.minMs, 1000)
   assert.equal(lo.giftTrigger.maxMs, 1000) // never below minMs
   assert.equal(lo.giftLayout.roll, 0)
+  // duration/loop bounds
+  assert.equal(clampGiftConfig({ giftDurationSec: 999 }, {}).giftDurationSec, 60)
+  assert.equal(clampGiftConfig({ giftDurationSec: -1 }, {}).giftDurationSec, 0.5)
+  assert.equal(clampGiftConfig({ giftLoop: false }, {}).giftLoop, false)
+  assert.equal(clampGiftConfig({ giftLoop: 'x' }, {}).giftLoop, true)
 })
 
 test('clampGiftConfig malformed types: strings/arrays/objects in the wrong slot fall back, never throw', () => {
@@ -663,7 +671,7 @@ test('clampGiftConfig malformed types: strings/arrays/objects in the wrong slot 
     giftTemplate: 12345, // number coerced to string
   }, {})
   assert.equal(out.giftEnabled, false)
-  assert.equal(out.giftMaxConcurrent, 2)
+  assert.equal(out.giftMaxConcurrent, 1)
   assert.equal(out.giftMaxAssetMB, 8)
   assert.deepEqual(out.giftSenders, [])
   assert.deepEqual(out.giftBindings, {})
@@ -683,7 +691,7 @@ test('clampGiftConfig NaN/Infinity: non-finite numbers fall back to defaults', (
     giftBindings: { g1: { scale: NaN, durationMs: Infinity } },
     giftLayout: { roll: NaN, top: Infinity },
   }, {})
-  assert.equal(out.giftMaxConcurrent, 2)
+  assert.equal(out.giftMaxConcurrent, 1)
   assert.equal(out.giftMaxAssetMB, 8)
   assert.equal(out.giftTrigger.probability, 0.05)
   assert.equal(out.giftTrigger.minMs, 30000)
