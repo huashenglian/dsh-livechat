@@ -11,6 +11,16 @@
 
 客户端通过 `ResizeObserver` + `getBoundingClientRect` 观测**中心对话列**（优先匹配 `[data-shell-overlay]` 兄弟布局 / center 列），把弹幕层裁剪到该列内，浮动评论不会溢出到侧栏。回退方案：铺满整个 viewport 且 `pointer-events:none`，仅单条弹幕条捕获 `auto` 指针事件——侧栏点击不受影响。
 
+## 窗口尺寸变化（resize）
+
+宿主对话列尺寸变化时显示区会重新测量：`ResizeObserver` 观测覆盖层宿主，另加一个 `window` resize 兜底——仅在宿主元素瞬时未布局（宽度为 0 或非法）时接管。兜底是**裁剪感知**的：尺寸由 `innerWidth * displayArea.w` 与 `(innerHeight - titlebarInset()) * displayArea.h` 推导，而不是裸视口——否则 50% 显示区裁剪会被放大成整屏，弹幕飞出裁剪框。
+
+resize 触发在同一帧内合并为一次，且幂等：尺寸与当前一致的 resize 什么也不做，避免无变化的 resize 清掉轨道布局或重建 GPU 后备缓冲。
+
+**已在屏的弹幕不会被重算。** 正在飞的弹幕沿用生成时的坐标与时长飞完；只有此后新生成的弹幕才用新尺寸。飞行途中不重算、不迁移、不清空。
+
+会话中途 `devicePixelRatio` 变化（窗口拖到不同 DPI 的显示器、或浏览器缩放）会重新应用 GPU 后备缓冲，画布继续与 CSS 尺寸对齐，不会模糊或比例偏差。三个后端行为一致。
+
 ## 布局类型
 
 每条弹幕按权重抽样为三种布局之一：

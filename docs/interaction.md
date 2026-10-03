@@ -15,6 +15,25 @@ A small draggable ball sits over the conversation area (top-right by default). I
 
 The ball hides when danmaku is fully disabled, and reappears on re-enable.
 
+### Position persistence and window resize
+
+The stored position is a **viewport-relative ratio** (`rx`/`ry`, 0–1) plus the pixel values it was derived from (`x`/`y`/`vw`/`vh`), anchored to the whole viewport (`window.innerWidth` / `innerHeight`). When the window changes size the ball repositions proportionally: a ball parked at the right edge stays at the right edge after maximizing.
+
+Two rules govern the conversion:
+
+- **Clamp outranks ratio.** The ratio-derived pixel position still goes through the shared clamp, so the ball is always reachable on screen. When the window shrinks, the ball may sit off its exact ratio — keeping it on screen matters more than keeping the proportion.
+- **Legacy pixel records migrate once.** A record saved by an older version with only `x`/`y` (no `rx`/`ry`) is clamped to the current viewport once and converted to a ratio immediately, so existing users get the resize behavior without having to drag the ball again. Zero-size or non-finite viewports skip the write rather than persisting a bad ratio.
+
+Drag, restore and resize all three go through the same clamp function.
+
+### Desktop titlebar
+
+On the desktop client the ball cannot rest inside the Windows titlebar strip at the top of the window, whose height comes from `--dsh-windows-titlebar-height` (40px on Windows). Dragging, restoring and resizing all respect this floor, so the ball never hides under the titlebar.
+
+### Known issue: pop menu overflow
+
+Once the ball can follow a ratio it can sit very close to the bottom or right edge, and its pop menu is positioned at `top: ballY + 48` / `left: min(ballX, innerWidth - 250)` without a viewport fit. At 1440×900 the menu has been measured overflowing the viewport (`top: 748, bottom: 1125, right: 1446` against `1440×900`). This is registered as a known issue and is intentionally not fixed in this release.
+
 ## Hover pause
 
 With `hoverPause: true` (default), hovering any danmaku item freezes it in place so you can read it. Move away and it resumes scrolling. This is client-side only — no server round-trip, no jank.

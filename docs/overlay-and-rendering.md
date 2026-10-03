@@ -11,6 +11,16 @@ The plugin mounts into the **`shell.overlay`** slot — a host-provided absolute
 
 The client observes the **center conversation column** via `ResizeObserver` + `getBoundingClientRect` (preferring a `[data-shell-overlay]` sibling layout / center column), and clips the danmaku layer to that column so floating comments never spill over the sidebars. Fallback: fill the whole viewport with `pointer-events:none`, letting only individual danmaku bars capture `auto` pointer events — sidebar clicks stay unblocked.
 
+## Window resize
+
+The display area re-measures whenever the host column changes size: a `ResizeObserver` on the overlay host, plus a `window` resize fallback that only kicks in when the host element is momentarily unlaid-out (zero or invalid width). The fallback is crop-aware — it derives the size from `innerWidth * displayArea.w` and `(innerHeight - titlebarInset()) * displayArea.h` rather than the raw viewport, so a 50% display-area crop stays inside its box instead of being blown up to full-screen.
+
+Resize triggers are coalesced to one per frame and are idempotent: a resize to the size the renderer already holds does nothing. That keeps a no-op resize from clearing the track layout or re-allocating the GPU backing store.
+
+**Items already on screen are never remapped.** An item that is flying keeps the coordinates and duration it was spawned with and finishes its run; only items spawned afterwards use the new size. Nothing is recalculated, repositioned or cleared mid-flight.
+
+A mid-session `devicePixelRatio` change (dragging the window to a monitor with different DPI, or browser zoom) re-applies the GPU backing store, so the canvas keeps matching its CSS size instead of rendering blurry or off-scale. All three backends behave the same way.
+
 ## Layout types
 
 Every danmaku item is one of three layouts, chosen per-spawn by a weighted pick:
