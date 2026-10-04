@@ -27,6 +27,8 @@ import {
   GIFT_TIP_MAX,
   GIFT_DEFAULTS,
   GIFT_POSITIONS,
+  GIFT_ANCHORS,
+  GIFT_RANDOM_KEYS,
   pickSender,
   parseSenderBatch,
   formatSenderBatch,
@@ -750,6 +752,74 @@ test('clampGiftConfig enum fields: invalid position falls back to center, valid 
   assert.equal(out.giftBindings.a.loop, false)
   assert.equal(out.giftBindings.c.position, 'center')
   assert.equal(out.giftBindings.c.assetId, '')
+})
+
+// ---- todo 8: custom position + left-mid/right-mid + explicit random allowlist ----
+
+test('clampGiftConfig custom position: position:"custom" survives with normalized x/y intact', () => {
+  const out = clampGiftConfig({
+    giftBindings: { g1: { assetId: 'a1', position: 'custom', x: 0.3, y: 0.7, scale: 1.5 } },
+  }, {})
+  assert.equal(out.giftBindings.g1.position, 'custom')
+  assert.equal(out.giftBindings.g1.x, 0.3)
+  assert.equal(out.giftBindings.g1.y, 0.7)
+  // the legacy 5 keys must keep working
+  assert.equal(out.giftBindings.g1.assetId, 'a1')
+  assert.equal(out.giftBindings.g1.scale, 1.5)
+  assert.equal(out.giftBindings.g1.durationMs, 3000)
+  assert.equal(out.giftBindings.g1.loop, false)
+})
+
+test('clampGiftConfig custom position: out-of-range / non-numeric x,y clamp into 0..1', () => {
+  const out = clampGiftConfig({
+    giftBindings: {
+      hi: { position: 'custom', x: 5, y: 99 },
+      lo: { position: 'custom', x: -3, y: -0.5 },
+      nan: { position: 'custom', x: 'abc', y: NaN },
+      inf: { position: 'custom', x: Infinity, y: -Infinity },
+      miss: { position: 'custom' },
+      obj: { position: 'custom', x: {}, y: [] },
+    },
+  }, {})
+  assert.deepEqual([out.giftBindings.hi.x, out.giftBindings.hi.y], [1, 1])
+  assert.deepEqual([out.giftBindings.lo.x, out.giftBindings.lo.y], [0, 0])
+  assert.deepEqual([out.giftBindings.nan.x, out.giftBindings.nan.y], [0.5, 0.5])
+  // Infinity/NaN are non-finite -> fall back to the 0.5 default (giftNum semantics)
+  assert.deepEqual([out.giftBindings.inf.x, out.giftBindings.inf.y], [0.5, 0.5])
+  assert.deepEqual([out.giftBindings.miss.x, out.giftBindings.miss.y], [0.5, 0.5])
+  // Number({}) is NaN -> default; Number([]) is 0 -> clamped to 0
+  assert.deepEqual([out.giftBindings.obj.x, out.giftBindings.obj.y], [0.5, 0])
+})
+
+test('clampGiftConfig custom position: x/y are dropped for non-custom presets', () => {
+  const out = clampGiftConfig({
+    giftBindings: { g1: { position: 'center', x: 0.1, y: 0.9 } },
+  }, {})
+  assert.equal(out.giftBindings.g1.position, 'center')
+  assert.equal('x' in out.giftBindings.g1, false)
+  assert.equal('y' in out.giftBindings.g1, false)
+})
+
+test('GIFT_POSITIONS includes custom, left-mid and right-mid', () => {
+  for (const p of ['custom', 'left-mid', 'right-mid']) assert.ok(GIFT_POSITIONS.includes(p), p)
+  assert.ok(GIFT_POSITIONS.includes('random'))
+})
+
+test('GIFT_ANCHORS has left-mid/right-mid but NOT custom', () => {
+  assert.deepEqual(GIFT_ANCHORS['left-mid'], [0.15, 0.5])
+  assert.deepEqual(GIFT_ANCHORS['right-mid'], [0.85, 0.5])
+  assert.equal('custom' in GIFT_ANCHORS, false)
+})
+
+test('GIFT_RANDOM_KEYS excludes custom (and random); left-mid/right-mid participate', () => {
+  assert.equal(GIFT_RANDOM_KEYS.includes('custom'), false)
+  assert.equal(GIFT_RANDOM_KEYS.includes('random'), false)
+  assert.ok(GIFT_RANDOM_KEYS.includes('left-mid'))
+  assert.ok(GIFT_RANDOM_KEYS.includes('right-mid'))
+  // every key must resolve to a real anchor, and the allowlist must cover
+  // exactly the anchor set (all presets participate, nothing else leaks in)
+  for (const k of GIFT_RANDOM_KEYS) assert.ok(k in GIFT_ANCHORS, k)
+  assert.deepEqual([...GIFT_RANDOM_KEYS].sort(), Object.keys(GIFT_ANCHORS).sort())
 })
 
 test('clampGiftConfig nested trigger+layout: partial nested objects merge with defaults, maxMs >= minMs', () => {

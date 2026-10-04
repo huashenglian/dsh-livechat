@@ -146,7 +146,7 @@ Writes are clamped by `clampGiftConfig()` (`lib/gift-lib.js`), which returns exa
 | `giftRoomId` | `''` | digits-only string, ≤20 chars (non-digits stripped) | Room id for catalog refresh, **filled in by the user**; empty issues no external request |
 | `giftTemplate` | `{user} 送出了 {gift}` | string ≤100 (empty → default) | Tip danmaku template; placeholders `{user}` (sender), `{gift}` (gift name) |
 | `giftSenders` | `[]` | array of `{name,weight}`, ≤50; `name` ≤24 chars, `weight` 0–100 | Weighted sender pool; empty/invalid entries dropped, anonymous fallback |
-| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop}}`, ≤2000 | Gift → asset binding; `position` one of 8 presets, `scale` 0.25–2, `durationMs` 1000–10000, `loop` bool |
+| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop,x?,y?}}`, ≤2000 | Gift → asset binding; `position` one of 11 (`center/top/bottom/top-left/top-right/bottom-left/bottom-right/left-mid/right-mid/custom/random`), `scale` 0.25–2, `durationMs` 1000–10000, `loop` bool; `x`/`y` (0–1, clamped, default 0.5) are present **only** for `position:"custom"` and are never drawn by `random` |
 | `giftTrigger` | `{manual:true, random:false, probability:0.05, minMs:30000, maxMs:120000}` | `manual`/`random` bool; `probability` 0–1; `minMs` 1000–3600000; `maxMs` ≥minMs, ≤3600000 | Manual/random trigger and roll cadence |
 | `giftMaxConcurrent` | 2 | 1–10 | On-screen effect concurrency cap; extras queue up |
 | `giftShowSender` | true | bool | Whether the tip danmaku carries the sender nickname label |
