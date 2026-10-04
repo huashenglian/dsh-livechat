@@ -54,7 +54,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `opacity` | 0.85 | 0.1–1.0 | Active brightness |
 | `opacityIdle` | 0.15 | 0–0.8 | Idle (reading) brightness |
 | `antiOcclude` | true | bool | Fade to idle when quiet |
-| `maxOnscreen` | 40 | 1–200 | Hard cap on live DOM nodes |
+| `maxOnscreen` | 40 | 1–200 | Soft cap on live **ambient** danmaku (per renderer). Gift tip danmaku are exempt (they may push `stats().onscreen` past this value) |
 | `fontSize` | 16 | 12–36 | px |
 | `crossSec` | 8 | 3–20 | Seconds for roll item to cross |
 | `scrollSpeed` | 140 | 40–400 | px/s (overrides crossSec-derived speed) |
