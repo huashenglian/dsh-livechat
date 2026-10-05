@@ -27,12 +27,12 @@ A fresh install seeds **3 default gift cards** on first boot (the gift catalog i
 
 Settings → Plugins → Plugin config → **"Live Chat Danmaku"** card, scroll to the **Gifts** section:
 
-- **Enable gift effects** (`giftEnabled`) — the master switch, **off by default**.
+- **Enable gift effects** (`giftEnabled`) — the gift module's **own** master switch, **off by default**; the plugin master switch (`enabled`) also shuts it down entirely when off.
 - **Open gift config…** — the single entry button, opening the large modal (gift library + asset library + config).
 
 There is also a **Gifts** settings tab in the left nav (right after **Danmaku pools**). The large modal is `min(1280px, 96vw)` × `min(760px, 88vh)`, split into three panes:
 
-- **Left (gift library)**: the two-level source menu (bilibili / custom) with a search box, then the list — bilibili rows carry "+"/red "×", custom rows carry delete + bind (starts at 248px, 200–400).
+- **Left (gift library)**: one top row with the **search box on the LEFT** and **a single category dropdown on the RIGHT** (clicking it opens ONE popover holding both levels: the bilibili / custom parents plus bilibili's 金瓜子 / 银瓜子 children), then the list — bilibili rows carry "+"/red "×", custom rows carry delete + bind (starts at 248px, 200–400).
 - **Center (asset library)**: the local asset panel, one toolbar row on top and a width-adaptive asset grid below.
 - **Right (config)**: effect position / basics / test sections (starts at 300px, 240–420).
 
@@ -72,13 +72,16 @@ Behavior contract:
 - Success → toast "Added X / skipped Y" and refetch the left column; failure → toast only, **no file written**, no room-id echo.
 - Mapping reads only whitelisted fields, so room identifiers from the raw response (`room_id`, `uid`, …) **never** enter the catalog or the logs (logs print count summaries only).
 
-## Gift library: two-level source menu
+## Gift library: search + one category dropdown
 
-The left pane's filter is a two-level menu instead of a category `<select>`:
+The left pane's top row is two controls: the **search box on the left** (filter by name / id, taking the remaining width) and the **category dropdown on the right**. The dropdown button shows the current selection plus "▾" (e.g. `bilibili ▾` / `金瓜子 ▾` / `自定义 ▾`); clicking it opens **one popover** that holds both levels:
 
-- **bilibili** / **自定义 (custom)** — both top-level items are clickable and mean the whole source.
-- Hovering (or focusing) **bilibili** opens a sub-menu to its right with the coin types present in the catalog (金瓜子 / 银瓜子, first-seen order); picking one narrows the list to that coin type. 自定义 has no sub-menu.
-- **自定义** lists your own asset-library items that did not come from a gift. Each row shows a bind badge (unbound / bound), a red **×** (delete the asset, same route the card × uses) and a **+** that opens an in-panel picker to **bind it to a gift**. A custom asset is drawable **only through a binding**: on trigger it uses the bound gift's name.
+- **bilibili** — the top-level item meaning the whole bilibili source; under it come the catalog's coin types in first-seen order (金瓜子 / 银瓜子). Picking a child narrows the list to that coin type.
+- **自定义 (custom)** — a leaf with no children; it lists your own asset-library items that did not come from a gift.
+
+Picking any item closes the popover and refreshes the list immediately (paging resets to page one); clicking outside the popover also closes it. The popover opens downward and is right-anchored to the dropdown, so it never flies out sideways past the pane. There is no hover flyout anymore, and no `<select>` and no 「类型 N」 text anywhere.
+
+A custom row shows a bind badge (unbound / bound), a red **×** (delete the asset, same route the card × uses) and a **+** that opens an in-panel picker to **bind it to a gift**. A custom asset is drawable **only through a binding**: on trigger it uses the bound gift's name.
 
 ## Effect position
 
@@ -94,9 +97,9 @@ Clicking a left-column gift row **no longer** opens the position panel (rows onl
 
 ## Basics & test
 
-The right-pane **Basics** and **Test** sections (shows "enable the gift module first" and disables the test button while the master switch is off), with each control on its own row:
+The right-pane **Basics** and **Test** sections (show "enable the gift module first" and disable the test button while the gift master switch is off), with each control on its own row:
 
-- **Total probability** (`probability`, 0–1): once the master switch is on, gifts roll at this probability with the min/max interval below. **Turning the master switch on is the random trigger**; there is no separate "random ambient" switch.
+- **Total probability** (`probability`, 0–1): once the gift master switch is on, gifts roll at this probability with the min/max interval below. **Turning the gift master switch on is the random trigger**; there is no separate "random ambient" switch.
 - **Global size** (`giftScale`, 0.25–3, default 1): one multiplier for every gift effect; multiplied with the asset-local scale and the binding scale to produce the final effect size (base = viewport short side × 0.34).
 - **Asset size** (the asset's `scale`, 0.25–3, default 1): editable only after an asset card is selected (the slider stays disabled otherwise); affects only that asset's playback size and is stored in the asset manifest.
 - **Min interval / max interval**: one row each, each with a draggable slider and a **number input** on the right (in seconds, 1–3600).
@@ -107,10 +110,10 @@ The right-pane **Basics** and **Test** sections (shows "enable the gift module f
 > [!NOTE]
 > The **Manual trigger** checkbox was removed from the UI; the `giftTrigger.manual` **field still exists** in the schema and defaults (on by default) — it simply has no control anymore.
 
-On trigger: the bound asset's effect plays and one tip danmaku is layered in per `giftTemplate` (`giftShowSender` toggles the nickname label); concurrency caps at `giftMaxConcurrent` (**default 1**, 1–10) with FIFO queueing and drops past the queue limit. Random rolls participate **only when the master switch is on and a session is active** — blank / no-session pages never trigger.
+On trigger: the bound asset's effect plays and one tip danmaku is layered in per `giftTemplate` (`giftShowSender` toggles the nickname label); concurrency caps at `giftMaxConcurrent` (**default 1**, 1–10) with FIFO queueing and drops past the queue limit. Random rolls participate **only when BOTH 启用弹幕 (danmaku) and the gift master switch are on and a session is active** — blank / no-session pages never trigger.
 
 > [!NOTE]
-> **Gift danmaku are exempt from the ambient rules** — 自成一体、破例播. The tip danmaku bypasses the danmaku master switch (`enabled`) and the `maxOnscreen` ambient soft cap, so it still plays when the ambient layer is off or saturated; `giftEnabled` is the only gate. Effects also emit their tip **only after the effect really mounts** (a broken or missing asset produces no tip), and a tip emitted during a renderer rebuild is queued (bounded, newest wins) and flushed once the new renderer mounts, so it is never lost in the gap.
+> **Turning off 启用弹幕 (danmaku) turns off the plugin** — with the master switch (`enabled`) off, nothing plugin-related fires: no danmaku of any kind, no gift effects, no gift tips, and any gift animation that is playing or queued is **deleted immediately**. `giftEnabled` remains the gift module's own gate (when it is off the gift module does nothing). While the master switch is on, gift tip danmaku still bypass the `maxOnscreen` ambient soft cap (they go through `renderer.spawnGift`). Effects also emit their tip **only after the effect really mounts** (a broken or missing asset produces no tip), and a tip emitted during a renderer rebuild is queued (bounded, newest wins) and flushed once the new renderer mounts — the flush re-checks both switches — so it is never lost in the gap.
 
 ## Privacy
 

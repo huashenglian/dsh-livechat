@@ -76,7 +76,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | **Presets & LLM** | Three preset packs, event-triggered sampling, fatigue dedup, optional LLM generation with smart/interval/tool-call wake modes, style templates | [presets-and-llm.md](docs/presets-and-llm.md) |
 | **Interaction** | Draggable control ball, hover-pause, click-for-detail (copy / block / delete), user-sent danmaku, heat bar, welcome & task-done effects | [interaction.md](docs/interaction.md) |
 | **Session pools** | Per-session `.jsonl` danmaku pools, history replay with decay + like-boost, archive/restore, in-app pool editor | [session-pools.md](docs/session-pools.md) |
-| **Gift effects** | Three-pane modal (gift library / asset library / config; draggable dividers with persisted widths), center toolbar (room-id extract + import ▾ + icon size + new folder + clear assets), card-click effect position, basics row for global/asset animation size, left-column "+"/red "×", 3 default gift cards (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
+| **Gift effects** | Three-pane modal (gift library / asset library / config; draggable dividers with persisted widths), left-column search + one category dropdown (bilibili / custom, both levels in one popover), center toolbar (room-id extract + import ▾ + icon size + new folder + clear assets), card-click effect position, basics row for global/asset animation size, "+"/red "×", 3 default gift cards (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
 | **Configuration & API** | Settings card UI, every config field with defaults/range, full HTTP API reference | [configuration.md](docs/configuration.md) |
 
 ### Highlights
@@ -87,6 +87,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 - **Per-session memory**: liked/replayed danmaku resurface; deleted sessions clean up automatically
 - **Chromium-first**: tuned for Edge / Chrome; `translate3d`, page-`hidden` pause, on-screen cap
 - **Paused items stay**: hover/detail-locked danmaku remain on screen until they resume and leave the range
+- **Danmaku off = plugin off**: turning off 启用弹幕 stops every danmaku, gift effect and gift tip, and deletes a playing gift animation immediately; gift effects keep their own `giftEnabled` gate
 - **Config survives restarts**: every save writes a local mirror (`$DSH_HOME/danmaku-config.json`) plus a minimal `danmaku:` section in `settings.yaml`; boot resolves mirror → settings → defaults, so a restart never resets your setup
 - **Sessions by name**: the pool editor labels each pool with the real dsh session title instead of a truncated session id
 
@@ -105,7 +106,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | 0.6.6 | Gift modal polish: fixed-height cards, elastic trigger-row slider, import merged into one card |
 | 0.6.7 | Asset-card selection highlight + master-switch gating, render backend defaults to `auto` per client, dark-theme native `select` popup fix, animation / icon size, fixed danmaku leaking into the titlebar after applying a display area |
 | 0.6.8 | Three-backend window resize adaptation, viewport-ratio floating-ball repositioning, desktop titlebar exclusion |
-| 0.6.9 | Settings "More" menu: reset all config / clear all caches; gift-library two-level source menu (bilibili / custom) + custom-asset binding; draggable custom effect position (left-mid / right-mid / custom); gift tips play as an exception (bypass the danmaku master switch and the onscreen soft cap, only after a live effect); pop-menu viewport clamping, second resize path merged |
+| 0.6.9 | Settings "More" menu: reset all config / **clear all caches (gift assets are restored to the defaults: builtin assets + default gift cards)**; the "More" popover shares the settings-window background and follows the theme; gift library = **search on the LEFT + one category dropdown on the RIGHT** (both levels in ONE popover: bilibili / custom + 金瓜子 / 银瓜子) + custom-asset binding; draggable custom effect position (left-mid / right-mid / custom); turning off 启用弹幕 (danmaku) turns off the plugin (no danmaku of any kind, no gift effects, no gift tips; a playing gift animation is deleted immediately), `giftEnabled` still being the gift module's own gate; gift tip danmaku bypass the onscreen soft cap and only fire after the effect really mounts; pop-menu viewport clamping, second resize path merged |
 
 Earlier milestones also include the emoji library (imports / weights / manifest), the display-area editor, advanced danmaku (reverse scroll), and the optional LLM smart / interval / tool-call wake modes.
 

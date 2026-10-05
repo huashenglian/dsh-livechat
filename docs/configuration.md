@@ -50,11 +50,11 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
-| `enabled` | true | bool | Master switch |
+| `enabled` | true | bool | Master switch — turning it off shuts the whole plugin down: no danmaku, no gift effects, no gift tips, and a playing gift animation is deleted immediately |
 | `opacity` | 0.85 | 0.1–1.0 | Active brightness |
 | `opacityIdle` | 0.15 | 0–0.8 | Idle (reading) brightness |
 | `antiOcclude` | true | bool | Fade to idle when quiet |
-| `maxOnscreen` | 40 | 1–200 | Soft cap on live **ambient** danmaku (per renderer). Gift tip danmaku are exempt (they may push `stats().onscreen` past this value) |
+| `maxOnscreen` | 40 | 1–200 | Soft cap on live **ambient** danmaku (per renderer). While the master switch is on, gift tip danmaku are exempt (they may push `stats().onscreen` past this value) |
 | `fontSize` | 16 | 12–36 | px |
 | `crossSec` | 8 | 3–20 | Seconds for roll item to cross |
 | `scrollSpeed` | 140 | 40–400 | px/s (overrides crossSec-derived speed) |
@@ -142,7 +142,7 @@ Writes are clamped by `clampGiftConfig()` (`lib/gift-lib.js`), which returns exa
 
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
-| `giftEnabled` | false | bool | Gift module master switch, **off by default**; off means zero action |
+| `giftEnabled` | false | bool | The gift module's **own** master switch, **off by default**; off means zero action for the gift module. The plugin master switch (`enabled`) also shuts it down entirely when off |
 | `giftRoomId` | `''` | digits-only string, ≤20 chars (non-digits stripped) | Room id for catalog refresh, **filled in by the user**; empty issues no external request |
 | `giftTemplate` | `{user} 送出了 {gift}` | string ≤100 (empty → default) | Tip danmaku template; placeholders `{user}` (sender), `{gift}` (gift name) |
 | `giftSenders` | `[]` | array of `{name,weight}`, ≤50; `name` ≤24 chars, `weight` 0–100 | Weighted sender pool; empty/invalid entries dropped, anonymous fallback |
