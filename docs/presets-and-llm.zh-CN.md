@@ -17,6 +17,8 @@
 
 设置里选 `presetPack`。LLM 关闭时预设是唯一来源。
 
+用 `presetsEnabled: false`（默认 `true`）可整体关闭预设功能。关闭后：环境预设、事件突发、host 的 LLM 兜底全部停止，**且**会话池里已记录的预设弹幕也不再回放——只剩 LLM 弹幕。开关即时生效（无需刷新）并像其它设置一样持久化。
+
 ## 事件触发抽样
 
 每个事件映射到突发条数与偏好标签：
@@ -93,7 +95,7 @@
 
 ### 安全降级
 
-LLM 调用可能失败（无 provider、超时、解析错误、断网）。失败时 host **静默**降级到预设突发，标记 `source: 'preset'`、`reason: 'llm-fallback'`。无报错弹窗，覆盖层不中断——弹幕继续飘。
+LLM 调用可能失败（无 provider、超时、解析错误、断网）。失败时 host **静默**降级到预设突发，标记 `source: 'preset'`、`reason: 'llm-fallback'`。无报错弹窗，覆盖层不中断——弹幕继续飘。（`presetsEnabled: false` 时没有可降级的预设：host 返回 `items: []` / `reason: 'presets-disabled'`，弹幕池不写入。）
 
 > [!NOTE]
 > LLM prompt 禁止泄露密钥/路径或剧透后续步骤。输出还受 `styleMaxChars`（默认 24）截断并过 `blockedWords`。
@@ -106,6 +108,7 @@ LLM 调用可能失败（无 provider、超时、解析错误、断网）。失�
 
 | 字段 | 默认 | 范围 | 作用 |
 |---|---|---|---|
+| `presetsEnabled` | true | 布尔 | 预设功能总开关；关闭后只剩 LLM（不生成、不回放） |
 | `presetPack` | general | general/coding/casual | 预设选择 |
 | `llmEnabled` | true | 布尔 | LLM 生成总开关 |
 | `llmModel` | `-` | `-` 或 provider/model | LLM 模型 id；`-` 表示不使用 LLM |

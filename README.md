@@ -73,7 +73,7 @@ curl http://127.0.0.1:3080/api/danmaku/health
 | 模块 | 覆盖内容 | 文档 |
 |---|---|---|
 | **覆盖层与渲染** | `shell.overlay` 挂载、DOM 渲染器、多轨道防碰撞、防遮挡渐隐、渲染后端链 | [overlay-and-rendering.zh-CN.md](docs/overlay-and-rendering.zh-CN.md) |
-| **预设包与 LLM** | 三套预设包、事件触发抽样、疲劳去重、可选 LLM 生成（smart/interval/toolcall 唤醒）、风格模板 | [presets-and-llm.zh-CN.md](docs/presets-and-llm.zh-CN.md) |
+| **预设包与 LLM** | 三套预设包、事件触发抽样、疲劳去重、预设功能总开关（关闭后仅剩 LLM）、可选 LLM 生成（smart/interval/toolcall 唤醒）、风格模板 | [presets-and-llm.zh-CN.md](docs/presets-and-llm.zh-CN.md) |
 | **交互** | 拖球、悬停暂停、点击详情（复制/屏蔽/删除）、手发弹幕、热度条、欢迎与任务完成效果 | [interaction.zh-CN.md](docs/interaction.zh-CN.md) |
 | **分会话弹幕库** | 分会话 `.jsonl` 弹幕池、历史回放（衰减+点赞加权）、归档/恢复、应用内池编辑器 | [session-pools.zh-CN.md](docs/session-pools.zh-CN.md) |
 | **礼物特效** | 三栏大模态（左礼物库 / 中素材库 / 右配置，分界线可拖动且尺寸长期记忆）、左列搜索 + 单分类下拉（bilibili / 自定义，父子同浮窗）、中栏工具条（房间号提取 + 导入▾ + 图标大小 + 新建文件夹 + 清空素材）、素材卡点击显示特效位置、右栏基础含全局/当前素材动画大小、「+」/红色「×」、默认 3 张礼物卡（总开关默认关、隐私零房间号） | [gift-effects.zh-CN.md](docs/gift-effects.zh-CN.md) |
@@ -83,7 +83,7 @@ curl http://127.0.0.1:3080/api/danmaku/health
 
 - **三种布局**：滚动、顶部固定、底部固定——按权重生成
 - **防遮挡**：阅读时覆盖层变暗，热闹时亮起
-- **LLM 安全降级**：生成失败→静默降级预设，无报错弹窗
+- **LLM 安全降级**：生成失败→静默降级预设，无报错弹窗（预设总开关关闭时不再降级，只剩 LLM）
 - **分会话记忆**：点赞/回放过的弹幕会重现；删除会话自动清理池
 - **Chromium 优先**：为 Edge / Chrome 调优；`translate3d`、页面 `hidden` 暂停、同屏上限
 - **暂停不消失**：悬停/详情锁定的弹幕会一直留在画面，直到恢复滚动并离开范围

@@ -80,6 +80,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
+| `presetsEnabled` | true | bool | Preset feature master switch; `false` stops ambient presets, event bursts, host fallbacks **and** pool replay of recorded presets — only LLM danmaku remain |
 | `presetPack` | general | general/coding/casual | Preset selection |
 | `blockedWords` | [] | string[] | Content filter (case-insensitive) |
 | `density` | 3 | 1–5 | Overall spawn density |

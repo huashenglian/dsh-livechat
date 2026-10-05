@@ -80,6 +80,7 @@ UI 双语（zh/en），随宿主语言切换。
 
 | 字段 | 默认 | 范围/类型 | 作用 |
 |---|---|---|---|
+| `presetsEnabled` | true | 布尔 | 预设功能总开关；关闭后环境预设、事件突发、host 兜底**以及**已记录预设的池回放全部停止，只剩 LLM 弹幕 |
 | `presetPack` | general | general/coding/casual | 预设选择 |
 | `blockedWords` | [] | 字符串数组 | 屏蔽词（大小写不敏感） |
 | `density` | 3 | 1–5 | 生成密度 |

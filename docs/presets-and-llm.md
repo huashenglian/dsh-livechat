@@ -17,6 +17,8 @@ Three packs ship in the box (`lib/presets.js`), each tagged so events can pull r
 
 Pick one via `presetPack` in settings. When LLM is off, presets are the only source.
 
+Turn the whole feature off with `presetsEnabled: false` (default `true`). With presets off: ambient presets, event bursts and the host's LLM fallback all stop, **and** preset danmaku already recorded in a session pool are not replayed — only LLM danmaku remain. The switch is live (no reload) and persists like any other setting.
+
 ## Event-triggered sampling
 
 Each event maps to a burst size and preferred tags:
@@ -93,7 +95,7 @@ Settings groups **Wake advanced** and **Readable context** are collapsible (coll
 
 ### The safe fallback
 
-LLM calls can fail (no provider, timeout, parse error, network). When they do, the host **silently** falls back to a preset burst tagged `source: 'preset'` with `reason: 'llm-fallback'`. No error popups, no broken overlay — the crowd keeps talking.
+LLM calls can fail (no provider, timeout, parse error, network). When they do, the host **silently** falls back to a preset burst tagged `source: 'preset'` with `reason: 'llm-fallback'`. No error popups, no broken overlay — the crowd keeps talking. (With `presetsEnabled: false` there is no preset to fall back to: the host answers `items: []` / `reason: 'presets-disabled'` and the pool is left untouched.)
 
 > [!NOTE]
 > The LLM prompt forbids leaking secrets/paths or spoiling future steps. Output is also capped at `styleMaxChars` (default 24) and filtered by `blockedWords`.
@@ -106,6 +108,7 @@ LLM calls can fail (no provider, timeout, parse error, network). When they do, t
 
 | Field | Default | Range | Effect |
 |---|---|---|---|
+| `presetsEnabled` | true | bool | Preset feature master switch; `false` = LLM only (no generation, no replay) |
 | `presetPack` | general | general/coding/casual | Preset selection |
 | `llmEnabled` | true | bool | LLM generation master switch |
 | `llmModel` | `-` | `-` or provider/model | LLM model id; `-` disables LLM generation |

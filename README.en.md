@@ -73,7 +73,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | Module | What it covers | Doc |
 |---|---|---|
 | **Overlay & rendering** | `shell.overlay` mount, DOM renderer, multi-track collision avoidance, anti-occlusion fade, render-backend chain | [overlay-and-rendering.md](docs/overlay-and-rendering.md) |
-| **Presets & LLM** | Three preset packs, event-triggered sampling, fatigue dedup, optional LLM generation with smart/interval/tool-call wake modes, style templates | [presets-and-llm.md](docs/presets-and-llm.md) |
+| **Presets & LLM** | Three preset packs, event-triggered sampling, fatigue dedup, a preset-feature master switch (off = LLM only), optional LLM generation with smart/interval/tool-call wake modes, style templates | [presets-and-llm.md](docs/presets-and-llm.md) |
 | **Interaction** | Draggable control ball, hover-pause, click-for-detail (copy / block / delete), user-sent danmaku, heat bar, welcome & task-done effects | [interaction.md](docs/interaction.md) |
 | **Session pools** | Per-session `.jsonl` danmaku pools, history replay with decay + like-boost, archive/restore, in-app pool editor | [session-pools.md](docs/session-pools.md) |
 | **Gift effects** | Three-pane modal (gift library / asset library / config; draggable dividers with persisted widths), left-column search + one category dropdown (bilibili / custom, both levels in one popover), center toolbar (room-id extract + import ▾ + icon size + new folder + clear assets), card-click effect position, basics row for global/asset animation size, "+"/red "×", 3 default gift cards (master switch off by default, zero room ids) | [gift-effects.md](docs/gift-effects.md) |
@@ -83,7 +83,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 
 - **Three layouts**: roll (scroll), top-fixed, bottom-fixed — weighted per-config
 - **Anti-occlusion**: overlay dims while you read, brightens when the crowd gets loud
-- **LLM with safe fallback**: generation fails → silent preset fallback, no error popups
+- **LLM with safe fallback**: generation fails → silent preset fallback, no error popups (no fallback once the preset master switch is off — LLM only)
 - **Per-session memory**: liked/replayed danmaku resurface; deleted sessions clean up automatically
 - **Chromium-first**: tuned for Edge / Chrome; `translate3d`, page-`hidden` pause, on-screen cap
 - **Paused items stay**: hover/detail-locked danmaku remain on screen until they resume and leave the range
