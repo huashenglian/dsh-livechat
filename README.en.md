@@ -105,6 +105,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | 0.6.6 | Gift modal polish: fixed-height cards, elastic trigger-row slider, import merged into one card |
 | 0.6.7 | Asset-card selection highlight + master-switch gating, render backend defaults to `auto` per client, dark-theme native `select` popup fix, animation / icon size, fixed danmaku leaking into the titlebar after applying a display area |
 | 0.6.8 | Three-backend window resize adaptation, viewport-ratio floating-ball repositioning, desktop titlebar exclusion |
+| 0.6.9 | Settings "More" menu: reset all config / clear all caches; gift-library two-level source menu (bilibili / custom) + custom-asset binding; draggable custom effect position (left-mid / right-mid / custom); gift tips play as an exception (bypass the danmaku master switch and the onscreen soft cap, only after a live effect); pop-menu viewport clamping, second resize path merged |
 
 Earlier milestones also include the emoji library (imports / weights / manifest), the display-area editor, advanced danmaku (reverse scroll), and the optional LLM smart / interval / tool-call wake modes.
 

@@ -32,7 +32,7 @@ Settings → Plugins → Plugin config → **"Live Chat Danmaku"** card, scroll 
 
 There is also a **Gifts** settings tab in the left nav (right after **Danmaku pools**). The large modal is `min(1280px, 96vw)` × `min(760px, 88vh)`, split into three panes:
 
-- **Left (gift library)**: the Bilibili gift list, each row a "+" or a red "×" (starts at 248px, 200–400).
+- **Left (gift library)**: the two-level source menu (bilibili / custom) with a search box, then the list — bilibili rows carry "+"/red "×", custom rows carry delete + bind (starts at 248px, 200–400).
 - **Center (asset library)**: the local asset panel, one toolbar row on top and a width-adaptive asset grid below.
 - **Right (config)**: effect position / basics / test sections (starts at 300px, 240–420).
 
@@ -72,16 +72,25 @@ Behavior contract:
 - Success → toast "Added X / skipped Y" and refetch the left column; failure → toast only, **no file written**, no room-id echo.
 - Mapping reads only whitelisted fields, so room identifiers from the raw response (`room_id`, `uid`, …) **never** enter the catalog or the logs (logs print count summaries only).
 
+## Gift library: two-level source menu
+
+The left pane's filter is a two-level menu instead of a category `<select>`:
+
+- **bilibili** / **自定义 (custom)** — both top-level items are clickable and mean the whole source.
+- Hovering (or focusing) **bilibili** opens a sub-menu to its right with the coin types present in the catalog (金瓜子 / 银瓜子, first-seen order); picking one narrows the list to that coin type. 自定义 has no sub-menu.
+- **自定义** lists your own asset-library items that did not come from a gift. Each row shows a bind badge (unbound / bound), a red **×** (delete the asset, same route the card × uses) and a **+** that opens an in-panel picker to **bind it to a gift**. A custom asset is drawable **only through a binding**: on trigger it uses the bound gift's name.
+
 ## Effect position
 
 Clicking a **material card in the center pane** shows it in the right-pane **Effect position** section:
 
 - If the card comes from a gift (`source === 'gift:<id>'`) and a matching binding exists, it shows the gift name and ID with the same interaction as before:
-  - **Position**: 8 options, `center` / `top` / `bottom` / `top-left` / `top-right` / `bottom-left` / `bottom-right` / `random` (7 presets + random).
-  - **Position preview bar**: a mini frame showing the normalized anchor, updating live with the dropdown.
+  - **Position**: 11 options, `center` / `top` / `bottom` / `top-left` / `top-right` / `bottom-left` / `bottom-right` / `left-mid` / `right-mid` / `custom` / `random` (10 presets + random).
+  - **Position preview bar**: a mini frame showing the normalized anchor, updating live with the dropdown. Its **marker is draggable** — drag it to write **custom** coordinates (`x` / `y`, normalized 0–1 inside the preview box). Picking any preset overrides the custom pair.
+  - `random` draws only from an explicit allowlist of the 9 preset anchors (`custom` and `random` themselves are excluded, since a random draw has no x/y to fall back on).
 - If the card is not bound to a gift (built-in or plain import), or the binding dangles (its asset card no longer exists), it shows a "not bound to a gift, position does not apply" hint and no position control.
 
-Clicking a left-column gift row **no longer** opens the position panel (rows only carry "+"/"×"). The position is written to the `position` field of `giftBindings` (keyed by gift id) with a **delta** POST, **preserving** that binding's `assetId` / `scale` / `durationMs` / `loop` (these fields still exist in the schema and keep their defaults, duration 1–10 s, they are simply no longer edited in the UI). Binding shape: `{assetId, position, scale, durationMs, loop}`.
+Clicking a left-column gift row **no longer** opens the position panel (rows only carry "+"/"×"). The position is written to the `position` field of `giftBindings` (keyed by gift id) with a **delta** POST, **preserving** that binding's `assetId` / `scale` / `durationMs` / `loop` (these fields still exist in the schema and keep their defaults, duration 1–10 s, they are simply no longer edited in the UI). Binding shape: `{assetId, position, scale, durationMs, loop}`, plus `x` / `y` (0–1) when `position:"custom"`.
 
 ## Basics & test
 
@@ -98,7 +107,10 @@ The right-pane **Basics** and **Test** sections (shows "enable the gift module f
 > [!NOTE]
 > The **Manual trigger** checkbox was removed from the UI; the `giftTrigger.manual` **field still exists** in the schema and defaults (on by default) — it simply has no control anymore.
 
-On trigger: the bound asset's effect plays and one tip danmaku is layered in per `giftTemplate` (`giftShowSender` toggles the nickname label); concurrency caps at `giftMaxConcurrent` (default 2, 1–10) with FIFO queueing and drops past the queue limit. Random rolls participate **only when the master switch is on and a session is active** — blank / no-session pages never trigger.
+On trigger: the bound asset's effect plays and one tip danmaku is layered in per `giftTemplate` (`giftShowSender` toggles the nickname label); concurrency caps at `giftMaxConcurrent` (**default 1**, 1–10) with FIFO queueing and drops past the queue limit. Random rolls participate **only when the master switch is on and a session is active** — blank / no-session pages never trigger.
+
+> [!NOTE]
+> **Gift danmaku are exempt from the ambient rules** — 自成一体、破例播. The tip danmaku bypasses the danmaku master switch (`enabled`) and the `maxOnscreen` ambient soft cap, so it still plays when the ambient layer is off or saturated; `giftEnabled` is the only gate. Effects also emit their tip **only after the effect really mounts** (a broken or missing asset produces no tip), and a tip emitted during a renderer rebuild is queued (bounded, newest wins) and flushed once the new renderer mounts, so it is never lost in the gap.
 
 ## Privacy
 

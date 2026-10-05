@@ -54,7 +54,7 @@ UI 双语（zh/en），随宿主语言切换。
 | `opacity` | 0.85 | 0.1–1.0 | 活跃亮度 |
 | `opacityIdle` | 0.15 | 0–0.8 | 空闲亮度 |
 | `antiOcclude` | true | 布尔 | 平息渐暗 |
-| `maxOnscreen` | 40 | 1–200 | 同屏节点上限 |
+| `maxOnscreen` | 40 | 1–200 | 同屏**环境弹幕**软上限（每渲染器）。礼物提示弹幕豁免（`stats().onscreen` 可能超过此值） |
 | `fontSize` | 16 | 12–36 | px |
 | `crossSec` | 8 | 3–20 | 穿屏秒数 |
 | `scrollSpeed` | 140 | 40–400 | px/s（覆盖穿屏推导） |
@@ -146,9 +146,9 @@ UI 双语（zh/en），随宿主语言切换。
 | `giftRoomId` | `''` | 纯数字串，≤20 位（非数字剥离） | 目录刷新用房间号，**由用户填写**；空值不发起外部请求 |
 | `giftTemplate` | `{user} 送出了 {gift}` | 字符串 ≤100（空→回默认） | 提示弹幕模板；占位符 `{user}`（送礼人）、`{gift}`（礼物名） |
 | `giftSenders` | `[]` | `{name,weight}` 数组，≤50 条；`name` ≤24 字符，`weight` 0–100 | 送礼人加权池；空/无效项过滤后用匿名 |
-| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop}}`，≤2000 条 | 礼物→素材绑定；`position` 为 8 预设之一，`scale` 0.25–2，`durationMs` 1000–10000，`loop` 布尔 |
+| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop,x?,y?}}`，≤2000 条 | 礼物→素材绑定；`position` 为 11 个取值之一（`center/top/bottom/top-left/top-right/bottom-left/bottom-right/left-mid/right-mid/custom/random`），`scale` 0.25–2，`durationMs` 1000–10000，`loop` 布尔；`x`/`y`（0–1，裁剪，默认 0.5）**仅**在 `position:"custom"` 时出现（拖预览圆点写入，选任何预设都会丢弃），`random` 永不抽到 |
 | `giftTrigger` | `{manual:true, random:false, probability:0.05, minMs:30000, maxMs:120000}` | `manual`/`random` 布尔；`probability` 0–1；`minMs` 1000–3600000；`maxMs` ≥minMs、≤3600000 | 手动/随机触发与抽签节奏 |
-| `giftMaxConcurrent` | 2 | 1–10 | 同屏特效并发上限，超出排队 |
+| `giftMaxConcurrent` | 1 | 1–10 | 同屏特效并发上限，超出排队 |
 | `giftShowSender` | true | 布尔 | 提示弹幕是否带送礼人昵称标签 |
 | `giftLayout` | `{roll:100, top:0, bottom:0}` | 各 0–100 | 礼物提示弹幕的滚/顶/底布局权重 |
 | `giftMaxAssetMB` | 8 | 1–64 | 单个素材大小上限（MB），服务端 413 裁剪 |
