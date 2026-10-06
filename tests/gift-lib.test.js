@@ -178,7 +178,7 @@ test('setWeight sets value and clamps negatives to zero', () => {
   }
 })
 
-// 0.6.10: the effect position lives on the asset item (retired from bindings).
+// 0.6.9: the effect position lives on the asset item (retired from bindings).
 test('itemPosition defaults to center and emits x/y only for custom', () => {
   assert.deepEqual(itemPosition({}), { position: 'center' })
   assert.deepEqual(itemPosition({ position: 'bogus' }), { position: 'center' })
