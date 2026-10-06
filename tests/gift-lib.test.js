@@ -14,6 +14,8 @@ import {
   moveItems,
   deleteItems,
   setWeight,
+  setPosition,
+  itemPosition,
   addAsset,
   clearAll,
   ensureSeed,
@@ -174,6 +176,60 @@ test('setWeight sets value and clamps negatives to zero', () => {
   } finally {
     cleanup(home)
   }
+})
+
+// 0.6.10: the effect position lives on the asset item (retired from bindings).
+test('itemPosition defaults to center and emits x/y only for custom', () => {
+  assert.deepEqual(itemPosition({}), { position: 'center' })
+  assert.deepEqual(itemPosition({ position: 'bogus' }), { position: 'center' })
+  assert.deepEqual(itemPosition({ position: 'top-left', x: 9, y: 9 }), { position: 'top-left' })
+  assert.deepEqual(itemPosition({ position: 'custom' }), { position: 'custom', x: 0.5, y: 0.5 })
+  assert.deepEqual(itemPosition({ position: 'custom', x: 5, y: -1 }), { position: 'custom', x: 1, y: 0 })
+  assert.deepEqual(itemPosition({ position: 'custom', x: 'a', y: null }), { position: 'custom', x: 0.5, y: 0 })
+})
+
+test('setPosition writes a preset, clamps custom coords, and drops them otherwise', () => {
+  const home = tmpHome()
+  try {
+    const a = addAsset({ name: 'a.svg', buffer: buf('<svg/>'), home })
+    assert.equal(toPublicItem(loadGiftManifest(home).items[0]).position, 'center')
+    assert.equal(setPosition(a.id, { position: 'top-left' }, home).position, 'top-left')
+    let item = loadGiftManifest(home).items[0]
+    assert.equal(item.position, 'top-left')
+    assert.equal(item.x, undefined)
+
+    const c = setPosition(a.id, { position: 'custom', x: 5, y: -1 }, home)
+    assert.deepEqual(c, { ok: true, position: 'custom', x: 1, y: 0 })
+    item = loadGiftManifest(home).items[0]
+    assert.equal(item.x, 1)
+    assert.equal(item.y, 0)
+
+    // A non-custom preset must erase stale coordinates (never travel along).
+    setPosition(a.id, { position: 'bottom-right' }, home)
+    item = loadGiftManifest(home).items[0]
+    assert.equal(item.position, 'bottom-right')
+    assert.equal(item.x, undefined)
+    assert.equal(item.y, undefined)
+
+    // Hostile bodies clamp, they never write junk. (Same giftNum semantics as
+    // the binding clamp: a non-numeric string falls back, a finite 0 is kept.)
+    assert.equal(setPosition(a.id, { position: 'bogus' }, home).position, 'center')
+    assert.equal(setPosition(a.id, null, home).position, 'center')
+    assert.deepEqual(setPosition(a.id, { position: 'custom', x: 'a' }, home), { ok: true, position: 'custom', x: 0.5, y: 0.5 })
+    assert.deepEqual(setPosition('ghost', { position: 'top' }, home), { ok: false, reason: 'not_found' })
+  } finally {
+    cleanup(home)
+  }
+})
+
+test('toPublicItem exposes position (and x/y only for custom)', () => {
+  const pub = toPublicItem({ id: 'g1', name: 'n', kind: 'svg', bytes: 1, weight: 1, position: 'left-mid' })
+  assert.equal(pub.position, 'left-mid')
+  assert.equal(pub.x, undefined)
+  assert.equal(pub.y, undefined)
+  const custom = toPublicItem({ id: 'g1', name: 'n', kind: 'svg', bytes: 1, weight: 1, position: 'custom', x: 0.25, y: 0.75 })
+  assert.deepEqual([custom.position, custom.x, custom.y], ['custom', 0.25, 0.75])
+  assert.equal(toPublicItem({ id: 'g1', name: 'n', kind: 'svg', bytes: 1, weight: 1 }).position, 'center')
 })
 
 test('gift-lib CRUD reports save failure instead of ok:true (F2-m1)', () => {
