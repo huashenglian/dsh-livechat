@@ -147,13 +147,13 @@ Writes are clamped by `clampGiftConfig()` (`lib/gift-lib.js`), which returns exa
 | `giftRoomId` | `''` | digits-only string, ≤20 chars (non-digits stripped) | Room id for catalog refresh, **filled in by the user**; empty issues no external request |
 | `giftTemplate` | `{user} 送出了 {gift}` | string ≤100 (empty → default) | Tip danmaku template; placeholders `{user}` (sender), `{gift}` (gift name) |
 | `giftSenders` | `[]` | array of `{name,weight}`, ≤50; `name` ≤24 chars, `weight` 0–100 | Weighted sender pool; empty/invalid entries dropped, anonymous fallback |
-| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop,x?,y?}}`, ≤2000 | Gift → asset binding; `position` one of 11 (`center/top/bottom/top-left/top-right/bottom-left/bottom-right/left-mid/right-mid/custom/random`), `scale` 0.25–2, `durationMs` 1000–10000, `loop` bool; `x`/`y` (0–1, clamped, default 0.5) are present **only** for `position:"custom"` (written by dragging the preview dot; picking any preset drops them) and are never drawn by `random` |
+| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop,x?,y?}}`, ≤2000 | **Retired legacy field (takes part in no behaviour since 0.6.9)**: triggering draws from the **asset library** by weight, and the effect position lives on the **asset manifest's** `position`. The plugin only ever leaves one entry behind when it seeds the default gift cards on first boot (shape `{assetId,position,scale,durationMs,loop}`, plus `x`/`y` for `position:"custom"`); it is never read and affects neither triggering nor position. Pre-existing `position` values were copied onto their assets once at 0.6.9 boot |
 | `giftTrigger` | `{manual:true, random:false, probability:0.05, minMs:30000, maxMs:120000}` | `manual`/`random` bool; `probability` 0–1; `minMs` 1000–3600000; `maxMs` ≥minMs, ≤3600000 | Manual/random trigger and roll cadence |
 | `giftMaxConcurrent` | 1 | 1–10 | On-screen effect concurrency cap; extras queue up |
 | `giftShowSender` | true | bool | Whether the tip danmaku carries the sender nickname label |
 | `giftLayout` | `{roll:100, top:0, bottom:0}` | each 0–100 | Roll/top/bottom layout weights for gift tip danmaku |
 | `giftMaxAssetMB` | 8 | 1–64 | Per-asset size cap (MB); server 413s larger uploads |
-| `giftScale` | 1 | 0.25–3 | Global size multiplier for gift effects; final size = viewport short side × 0.34 × this × asset size × binding scale |
+| `giftScale` | 1 | 0.25–3 | Global size multiplier for gift effects; final size = viewport short side × 0.34 × this × asset size |
 
 ---
 

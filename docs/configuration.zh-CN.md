@@ -147,13 +147,13 @@ UI 双语（zh/en），随宿主语言切换。
 | `giftRoomId` | `''` | 纯数字串，≤20 位（非数字剥离） | 目录刷新用房间号，**由用户填写**；空值不发起外部请求 |
 | `giftTemplate` | `{user} 送出了 {gift}` | 字符串 ≤100（空→回默认） | 提示弹幕模板；占位符 `{user}`（送礼人）、`{gift}`（礼物名） |
 | `giftSenders` | `[]` | `{name,weight}` 数组，≤50 条；`name` ≤24 字符，`weight` 0–100 | 送礼人加权池；空/无效项过滤后用匿名 |
-| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop,x?,y?}}`，≤2000 条 | 礼物→素材绑定；`position` 为 11 个取值之一（`center/top/bottom/top-left/top-right/bottom-left/bottom-right/left-mid/right-mid/custom/random`），`scale` 0.25–2，`durationMs` 1000–10000，`loop` 布尔；`x`/`y`（0–1，裁剪，默认 0.5）**仅**在 `position:"custom"` 时出现（拖预览圆点写入，选任何预设都会丢弃），`random` 永不抽到 |
+| `giftBindings` | `{}` | `{giftId:{assetId,position,scale,durationMs,loop,x?,y?}}`，≤2000 条 | **已退役的遗留字段（0.6.9 起不再参与任何行为）**：触发从**素材库**按权重抽取，特效位置写在**素材清单**的 `position` 上。插件只在首次启动播种默认礼物卡时可能留下一条记录（形态仍是 `{assetId,position,scale,durationMs,loop}`，`position:"custom"` 另带 `x`/`y`），不再被读取、也不影响触发或位置；存量配置里的旧 `position` 已在 0.6.9 启动时一次性迁移到素材上 |
 | `giftTrigger` | `{manual:true, random:false, probability:0.05, minMs:30000, maxMs:120000}` | `manual`/`random` 布尔；`probability` 0–1；`minMs` 1000–3600000；`maxMs` ≥minMs、≤3600000 | 手动/随机触发与抽签节奏 |
 | `giftMaxConcurrent` | 1 | 1–10 | 同屏特效并发上限，超出排队 |
 | `giftShowSender` | true | 布尔 | 提示弹幕是否带送礼人昵称标签 |
 | `giftLayout` | `{roll:100, top:0, bottom:0}` | 各 0–100 | 礼物提示弹幕的滚/顶/底布局权重 |
 | `giftMaxAssetMB` | 8 | 1–64 | 单个素材大小上限（MB），服务端 413 裁剪 |
-| `giftScale` | 1 | 0.25–3 | 礼物特效全局大小倍率；最终尺寸 = 视口短边 × 0.34 × 该值 × 素材大小 × 绑定缩放 |
+| `giftScale` | 1 | 0.25–3 | 礼物特效全局大小倍率；最终尺寸 = 视口短边 × 0.34 × 该值 × 素材大小 |
 
 ---
 
