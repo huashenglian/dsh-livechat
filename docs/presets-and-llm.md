@@ -19,6 +19,15 @@ Pick one via `presetPack` in settings. When LLM is off, presets are the only sou
 
 Turn the whole feature off with `presetsEnabled: false` (default `true`). With presets off: ambient presets, event bursts and the host's LLM fallback all stop, **and** preset danmaku already recorded in a session pool are not replayed — only LLM danmaku remain. The switch is live (no reload) and persists like any other setting.
 
+### Preset pack editor (since 0.6.10)
+
+**Edit…** in the settings card's content section opens the pack editor: add/remove packs, rename them, edit the danmaku lines.
+
+- **One save, one place.** The editor has **no Save button of its own** — it only mutates the *Danmaku Live Chat* card's draft. Only that window's bottom-right **Save** runs `PUT /api/danmaku/presets`. Closing the editor keeps your draft.
+- **One way back.** The card's footer **Undo**, or simply **closing the *Danmaku Live Chat* window** (the draft is dropped, nothing reaches disk). The editor offers no undo of its own.
+- **Deleting a pack is staged, not applied.** The red trash button opens a confirmation (red title + pack name); confirming drops the pack **from the draft** (the content section's pack dropdown loses it too) while the **server and disk stay untouched**. The deletion only becomes real when you press the card's **Save**. If `presetPack` pointed at the removed pack it is re-pointed at the first survivor, so no dangling reference is stored.
+- A saved deletion also stops being sampled **this session**: `applyPresetStore()` now rebuilds the runtime pack table instead of merging into it (it used to only add), so a deleted pack is gone immediately rather than after a restart.
+
 ## Event-triggered sampling
 
 Each event maps to a burst size and preferred tags:

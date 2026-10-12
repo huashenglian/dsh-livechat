@@ -53,6 +53,7 @@ $DSH_HOME/danmaku-pools/archive/<sessionId>.jsonl
 
 - 列出所有会话及其**真实会话名称**（如「帮我写一个……」）与活跃/归档数和时间范围——名称由 Host 通过 `ctx.sessionQuery.readTitleSnapshots()` 一次批量折叠会话标题得到（与 dsh 侧边栏会话列表同源；无标题时回退到截断的 sessionId）
 - 按会话浏览活跃 + 归档
+- **整会话删除**：卡片右侧 **×** 按钮（0.6.10）——弹出二次确认（注明会话名与删除范围），确认后只删该会话的活跃 + 归档缓存（`DELETE /api/danmaku/pool/session`），其他会话不受影响
 - 内联编辑内容/权重/标签
 - 删除条目（活跃或归档）
 - 恢复归档条目（窗口内）

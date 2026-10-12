@@ -21,6 +21,21 @@ The card groups controls by concern:
 
 **Gifts** (its own nav tab, right after **Danmaku pools**) — master switch, the gift config modal, asset store entry; see [Gift effects](./gift-effects.md).
 
+### Save & undo model (since 0.6.10)
+
+The card's bottom-right **Save** is the **only** writer for every sub-window. Sub-windows (preset pack editor, colour weights, style templates, emoji library…) now only mutate a draft — none of them owns a **Save** button any more:
+
+- Anything you change in a sub-window lands in the card's draft and is **never written on the spot**; closing the sub-window keeps the draft.
+- The footer shows *unsaved changes* whenever the draft differs from what is stored. Only **Save** actually commits (config via `POST /api/danmaku/config`, preset packs via `PUT /api/danmaku/presets`).
+- There are exactly two ways back: the footer's **Undo**, or **closing the card** (the draft is dropped with the component, so nothing reaches disk). No sub-window offers an undo of its own.
+
+The **More** menu (footer, pops upward) holds two red destructive entries, each behind a confirmation:
+
+| Entry | Scope | Notes |
+|---|---|---|
+| **Reset all parameters** | Config values only | Returns configuration parameters (numbers, switches, text) to defaults. Danmaku pools, emoji, gift assets and custom presets are **not** affected — externally imported gift assets and emoji packs are never cleared |
+| **Reset everything** | Parameters + every cache | Resets all plugin parameters and caches to the **clean state of a first-time install**: permanently deletes every danmaku pool, emoji, custom preset and config value. Gift assets are restored to the defaults (builtin assets + default gift cards) |
+
 Click **Save** to persist via `POST /api/danmaku/config`, which writes to **two** places:
 
 | Location | Content | Role |
@@ -194,6 +209,7 @@ All routes are `kind: 'exact'` (path-unique). GET/POST share a handler per path 
 | DELETE | `/api/danmaku/pool/item` | `{sessionId, id, scope?}` | `{ok, scope}` |
 | POST | `/api/danmaku/pool/restore` | `{sessionId, id}` | `{ok, item}` or `{ok:false, reason:'too_old'\|'not_found'}` (403 on too_old) |
 | POST | `/api/danmaku/pools/clear` | — | `{ok, removed}` (deletes all session live+archive pool files) |
+| DELETE | `/api/danmaku/pool/session` | `{sessionId}` | `{ok, removed}` (deletes ONLY that session's live+archive pool files; other sessions untouched) |
 | POST | `/api/danmaku/like` | `{sessionId?, content}` | `{ok, liked}` (bumps likes+weight; appends if absent) |
 
 ### Example: change preset pack

@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.6.9-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.6.10-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#许可证)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.6.9"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.6.10"}
 ```
 
 ---
@@ -107,6 +107,7 @@ curl http://127.0.0.1:3080/api/danmaku/health
 | 0.6.7 | 素材卡选中高亮 + 总开关门控置灰、渲染后端默认 `auto` 客户端自适应、深色主题原生 `select` 弹层修复、动画大小 / 图标大小、显示区域应用后弹幕越入标题栏修复 |
 | 0.6.8 | 三后端窗口 resize 自适应、悬浮球按视口比例重定位、桌面端标题栏禁区 |
 | 0.6.9 | 设置「更多」菜单：重置所有配置 / **清除所有缓存（礼物素材还原为默认：内置素材 + 默认礼物卡）**，「更多」浮窗背景与设置窗口同色并跟随主题；礼物库**搜索在左 + 单个分类下拉在右**（父子两级同浮窗，bilibili / 自定义 + 金瓜子 / 银瓜子）+ **素材即加即用**（无需绑定，触发与位置都直接挂在素材上）、拖点自定义特效位置（左中 / 右中 / 自定义）、点网格空白取消选中；关闭「启用弹幕」= 关闭插件（任何弹幕 / 礼物特效 / 礼物提示都不再触发，正在播放的礼物动画立即删除），`giftEnabled` 仍是礼物模块自身的闸门；礼物提示弹幕豁免同屏软上限、特效真正上屏后才发；pop 菜单越界夹取、第二条 resize 路径合并 |
+| 0.6.10 | **所有功能开关改为滑动开关**（悬浮球快捷面板 / 设置卡 / 礼物模态，滑轨 + 滑块动效，禁用态置灰）；**弹幕库编辑器左侧每个会话卡片新增 × 删除按钮**——点击弹二次确认，确认后只删除该会话的活跃 + 归档弹幕缓存（其他会话不受影响，`DELETE /api/danmaku/pool/session`）；修复设置卡弹幕库分区「活跃 0」恒为 0 的问题（原用不存在的探针会话取统计，现读真实会话列表，活跃 / 归档均为真实条目数，关闭弹幕库编辑器后自动刷新）；**「弹幕 Live Chat」底栏「保存」成为所有子窗口的唯一落盘口**——预设包编辑器移除自己的保存按钮、只改草稿，撤销只有底栏「撤销」或直接关闭该窗口两条路；**删预设包先暂存、后落盘**（二次确认 → 只从草稿移除，点底栏保存才真正删除，被删包立即停止抽样）；「更多」菜单改名 **重置所有参数 / 全部初始化**（确认框写清各自范围）；**修复设置卡左侧导航点击卡顿**（分区高亮闪烁原本逐元素强制重排，点击要阻塞 2-4 秒才跳转，现只重排一次，点击后 36-73ms 内开始滚动） |
 
 更早的里程碑还包括表情库（导入 / 权重 / manifest）、显示区域编辑器、高级弹幕（反向滚动），以及可选 LLM 的 smart / interval / toolcall 唤醒模式。
 
