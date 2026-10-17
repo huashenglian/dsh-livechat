@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.6.10-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.6.11-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.6.10"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.6.11"}
 ```
 
 ---
@@ -107,6 +107,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 | 0.6.7 | Asset-card selection highlight + master-switch gating, render backend defaults to `auto` per client, dark-theme native `select` popup fix, animation / icon size, fixed danmaku leaking into the titlebar after applying a display area |
 | 0.6.8 | Three-backend window resize adaptation, viewport-ratio floating-ball repositioning, desktop titlebar exclusion |
 | 0.6.9 | Settings "More" menu: reset all config / **clear all caches (gift assets are restored to the defaults: builtin assets + default gift cards)**; the "More" popover shares the settings-window background and follows the theme; gift library = **search on the LEFT + one category dropdown on the RIGHT** (both levels in ONE popover: bilibili / custom + 金瓜子 / 银瓜子) + **assets are usable as soon as they are added** (nothing to bind — triggering and position both hang off the asset); draggable custom effect position (left-mid / right-mid / custom); clicking the grid's blank area drops the selected card; turning off 启用弹幕 (danmaku) turns off the plugin (no danmaku of any kind, no gift effects, no gift tips; a playing gift animation is deleted immediately), `giftEnabled` still being the gift module's own gate; gift tip danmaku bypass the onscreen soft cap and only fire after the effect really mounts; pop-menu viewport clamping, second resize path merged |
+| 0.6.11 | **The retired gift-binding (`giftBindings`) legacy logic is deleted outright**: the field had no write path since 0.6.9's「即加即用」 rework; this release removes it together with its three `DEFAULTS` entries, the normalization branches in both `clampGiftConfig` twins, the supporting constants, and the one-shot boot migration `migrateGiftPositions`. No behaviour change — trigger candidates have always been **the assets in the library with `weight > 0`** (add to the middle column = enable, remove = disable) and the effect position has always lived on the **asset manifest**. The binding-clamp tests were removed with the field; the same contract stays covered by the asset-side `itemPosition` / `setPosition` tests |
 | 0.6.10 | **Every feature switch is now a sliding toggle** (ball quick panel / settings card / gift modal — track + knob animation, disabled state dimmed); **each session card in the pool editor gets an × delete button** — one click opens a confirmation, and confirming deletes ONLY that session's live + archive danmaku cache (other sessions untouched; `DELETE /api/danmaku/pool/session`); fixed the settings-card pool row showing a hardwired 「活跃 0」 (it used to read stats for a nonexistent probe session — it now reads the real session list, live / archive are true entry counts, and the row refreshes when the pool editor closes); **the 「弹幕 Live Chat」 footer Save is now the single writer for every sub-window** — the preset pack editor lost its own Save button and only edits the draft, and the only ways back are the footer Undo or closing that window; **deleting a preset pack is staged before it is applied** (confirmation removes it from the draft only; the footer Save is what makes it real, and a deleted pack stops being sampled immediately); the **More** menu entries are renamed **Reset all parameters / Reset everything** (each confirmation states its own scope); **fixed the laggy settings-card left nav** (the section flash forced a full relayout per element, blocking the click for 2-4s before scrolling began — now one relayout, scrolling starts within 36-73ms) |
 
 Earlier milestones also include the emoji library (imports / weights / manifest), the display-area editor, advanced danmaku (reverse scroll), and the optional LLM smart / interval / tool-call wake modes.
