@@ -650,9 +650,9 @@ test('sanitizeSvg malformed input (unclosed tag) does not throw or leak script',
 
 // ---------------- clampGiftConfig (todo 6: gift config schema) ----------------
 // The listed key set is also the contract index.js/client.js mirror — keep the
-// two clamps in lockstep with this list.
+// two clamps in lockstep with this list. 0.6.11 dropped `giftBindings`.
 const GIFT_KEYS = [
-  'giftEnabled', 'giftRoomId', 'giftTemplate', 'giftSenders', 'giftBindings',
+  'giftEnabled', 'giftRoomId', 'giftTemplate', 'giftSenders',
   'giftTrigger', 'giftMaxConcurrent', 'giftDurationSec', 'giftLoop',
   'giftShowSender', 'giftLayout', 'giftMaxAssetMB', 'giftScale',
 ]
@@ -666,7 +666,6 @@ test('clampGiftConfig defaults: empty/base-less input yields exact gift defaults
   assert.equal(out.giftRoomId, '')
   assert.equal(out.giftTemplate, '{user} 送出了 {gift}')
   assert.deepEqual(out.giftSenders, [])
-  assert.deepEqual(out.giftBindings, {})
   assert.deepEqual(out.giftTrigger, { manual: true, random: false, probability: 0.05, minMs: 30000, maxMs: 120000 })
   assert.equal(out.giftMaxConcurrent, 1)
   assert.equal(out.giftDurationSec, 3)
@@ -684,7 +683,6 @@ test('clampGiftConfig numeric bounds: out-of-range values clamp, not reject', ()
     giftMaxConcurrent: 999,
     giftMaxAssetMB: 0,
     giftTrigger: { probability: 2, minMs: 1, maxMs: 99_999_999 },
-    giftBindings: { g1: { scale: 9, durationMs: 999_999 } },
     giftLayout: { roll: 500, top: -3, bottom: 42 },
   }, {})
   assert.equal(out.giftMaxConcurrent, 10)
@@ -692,8 +690,6 @@ test('clampGiftConfig numeric bounds: out-of-range values clamp, not reject', ()
   assert.equal(out.giftTrigger.probability, 1)
   assert.equal(out.giftTrigger.minMs, 1000)
   assert.equal(out.giftTrigger.maxMs, 3600000)
-  assert.equal(out.giftBindings.g1.scale, 2)
-  assert.equal(out.giftBindings.g1.durationMs, 10000)
   assert.equal(out.giftLayout.roll, 100)
   assert.equal(out.giftLayout.top, 0)
   assert.equal(out.giftLayout.bottom, 42)
@@ -723,7 +719,6 @@ test('clampGiftConfig malformed types: strings/arrays/objects in the wrong slot 
     giftMaxConcurrent: 'lots',
     giftMaxAssetMB: 'big',
     giftSenders: { name: 'x' }, // object, not array
-    giftBindings: [], // array, not map
     giftTrigger: [], // array, not object
     giftLayout: 'roll', // string, not object
     giftTemplate: 12345, // number coerced to string
@@ -732,7 +727,6 @@ test('clampGiftConfig malformed types: strings/arrays/objects in the wrong slot 
   assert.equal(out.giftMaxConcurrent, 1)
   assert.equal(out.giftMaxAssetMB, 8)
   assert.deepEqual(out.giftSenders, [])
-  assert.deepEqual(out.giftBindings, {})
   assert.deepEqual(out.giftTrigger, GIFT_DEFAULTS.giftTrigger)
   assert.deepEqual(out.giftLayout, GIFT_DEFAULTS.giftLayout)
   assert.equal(out.giftTemplate, '12345')
@@ -746,7 +740,6 @@ test('clampGiftConfig NaN/Infinity: non-finite numbers fall back to defaults', (
     giftMaxConcurrent: NaN,
     giftMaxAssetMB: Infinity,
     giftTrigger: { probability: -Infinity, minMs: NaN, maxMs: Infinity },
-    giftBindings: { g1: { scale: NaN, durationMs: Infinity } },
     giftLayout: { roll: NaN, top: Infinity },
   }, {})
   assert.equal(out.giftMaxConcurrent, 1)
@@ -754,107 +747,41 @@ test('clampGiftConfig NaN/Infinity: non-finite numbers fall back to defaults', (
   assert.equal(out.giftTrigger.probability, 0.05)
   assert.equal(out.giftTrigger.minMs, 30000)
   assert.equal(out.giftTrigger.maxMs, 120000)
-  assert.equal(out.giftBindings.g1.scale, 1)
-  assert.equal(out.giftBindings.g1.durationMs, 3000)
   assert.equal(out.giftLayout.roll, 100)
   assert.equal(out.giftLayout.top, 0)
 })
 
-test('clampGiftConfig string caps: room id is digits-only+short, template/name/assetId truncated', () => {
+test('clampGiftConfig string caps: room id is digits-only+short, template/name truncated', () => {
   const out = clampGiftConfig({
     giftRoomId: ' 12-34 ',
     giftTemplate: 'T'.repeat(500),
     giftSenders: [{ name: 'N'.repeat(100), weight: 3 }],
-    giftBindings: { ['k'.repeat(100)]: { assetId: 'a'.repeat(200) } },
   }, {})
   // short placeholder id (plan todo 29): never a 5–8 digit room-shaped literal
   assert.equal(out.giftRoomId, '1234')
   assert.equal(out.giftTemplate.length, 100)
   assert.equal(out.giftSenders[0].name.length, 24)
-  const bindingKey = Object.keys(out.giftBindings)[0]
-  assert.equal(bindingKey.length, 40)
-  assert.equal(out.giftBindings[bindingKey].assetId.length, 80)
   // a non-numeric room id becomes empty, never leaves junk for a URL
   assert.equal(clampGiftConfig({ giftRoomId: 'abc' }, {}).giftRoomId, '')
   // blank template falls back to the default
   assert.equal(clampGiftConfig({ giftTemplate: '   ' }, {}).giftTemplate, GIFT_DEFAULTS.giftTemplate)
 })
 
-test('clampGiftConfig array caps: senders <=50, unnamed/non-object dropped; bindings <=2000', () => {
+test('clampGiftConfig array caps: senders <=50, unnamed/non-object dropped', () => {
   const senders = []
   for (let i = 0; i < 60; i++) senders.push({ name: 's' + i, weight: 1 })
   const out = clampGiftConfig({ giftSenders: senders }, {})
   assert.equal(out.giftSenders.length, 50)
   const messy = clampGiftConfig({ giftSenders: [{ name: '' }, null, 42, { name: 'ok', weight: 5 }, { name: 'z' }] }, {})
   assert.deepEqual(messy.giftSenders, [{ name: 'ok', weight: 5 }, { name: 'z', weight: 1 }])
-
-  const many = {}
-  for (let i = 0; i < 2100; i++) many['g' + i] = { assetId: 'a' + i }
-  const capped = clampGiftConfig({ giftBindings: many }, {})
-  assert.equal(Object.keys(capped.giftBindings).length, 2000)
 })
 
-test('clampGiftConfig enum fields: invalid position falls back to center, valid ones survive', () => {
-  assert.ok(GIFT_POSITIONS.includes('center'))
-  const out = clampGiftConfig({
-    giftBindings: {
-      a: { assetId: 'x', position: 'diagonal' },
-      b: { assetId: 'y', position: 'top-right' },
-      c: { position: 7 },
-    },
-  }, {})
-  assert.equal(out.giftBindings.a.position, 'center')
-  assert.equal(out.giftBindings.b.position, 'top-right')
-  assert.equal(out.giftBindings.a.loop, false)
-  assert.equal(out.giftBindings.c.position, 'center')
-  assert.equal(out.giftBindings.c.assetId, '')
-})
+// 0.6.11: the binding-clamp tests are gone with the field. Their contract is
+// unchanged and still covered on the asset path — see the `itemPosition` /
+// `setPosition` tests above (invalid→center, custom x/y clamp 0..1,
+// non-finite→0.5, x/y dropped for non-custom, hostile bodies).
 
 // ---- todo 8: custom position + left-mid/right-mid + explicit random allowlist ----
-
-test('clampGiftConfig custom position: position:"custom" survives with normalized x/y intact', () => {
-  const out = clampGiftConfig({
-    giftBindings: { g1: { assetId: 'a1', position: 'custom', x: 0.3, y: 0.7, scale: 1.5 } },
-  }, {})
-  assert.equal(out.giftBindings.g1.position, 'custom')
-  assert.equal(out.giftBindings.g1.x, 0.3)
-  assert.equal(out.giftBindings.g1.y, 0.7)
-  // the legacy 5 keys must keep working
-  assert.equal(out.giftBindings.g1.assetId, 'a1')
-  assert.equal(out.giftBindings.g1.scale, 1.5)
-  assert.equal(out.giftBindings.g1.durationMs, 3000)
-  assert.equal(out.giftBindings.g1.loop, false)
-})
-
-test('clampGiftConfig custom position: out-of-range / non-numeric x,y clamp into 0..1', () => {
-  const out = clampGiftConfig({
-    giftBindings: {
-      hi: { position: 'custom', x: 5, y: 99 },
-      lo: { position: 'custom', x: -3, y: -0.5 },
-      nan: { position: 'custom', x: 'abc', y: NaN },
-      inf: { position: 'custom', x: Infinity, y: -Infinity },
-      miss: { position: 'custom' },
-      obj: { position: 'custom', x: {}, y: [] },
-    },
-  }, {})
-  assert.deepEqual([out.giftBindings.hi.x, out.giftBindings.hi.y], [1, 1])
-  assert.deepEqual([out.giftBindings.lo.x, out.giftBindings.lo.y], [0, 0])
-  assert.deepEqual([out.giftBindings.nan.x, out.giftBindings.nan.y], [0.5, 0.5])
-  // Infinity/NaN are non-finite -> fall back to the 0.5 default (giftNum semantics)
-  assert.deepEqual([out.giftBindings.inf.x, out.giftBindings.inf.y], [0.5, 0.5])
-  assert.deepEqual([out.giftBindings.miss.x, out.giftBindings.miss.y], [0.5, 0.5])
-  // Number({}) is NaN -> default; Number([]) is 0 -> clamped to 0
-  assert.deepEqual([out.giftBindings.obj.x, out.giftBindings.obj.y], [0.5, 0])
-})
-
-test('clampGiftConfig custom position: x/y are dropped for non-custom presets', () => {
-  const out = clampGiftConfig({
-    giftBindings: { g1: { position: 'center', x: 0.1, y: 0.9 } },
-  }, {})
-  assert.equal(out.giftBindings.g1.position, 'center')
-  assert.equal('x' in out.giftBindings.g1, false)
-  assert.equal('y' in out.giftBindings.g1, false)
-})
 
 test('GIFT_POSITIONS includes custom, left-mid and right-mid', () => {
   for (const p of ['custom', 'left-mid', 'right-mid']) assert.ok(GIFT_POSITIONS.includes(p), p)
@@ -917,12 +844,14 @@ test('clampGiftConfig does not mutate partial/base and is idempotent', () => {
   assert.deepEqual(partial, pBefore)
   assert.deepEqual(base, bBefore)
   assert.deepEqual(clampGiftConfig(once, {}), once)
-  // a null-prototype map must not blow up the binding walk
+  // a null-prototype object with a removed/unknown key must not throw and the
+  // unknown key must not reappear in the output
   const hostile = Object.create(null)
   hostile.giftBindings = Object.create(null)
   hostile.giftBindings.g1 = { position: 'random' }
   const out = clampGiftConfig(hostile, {})
-  assert.equal(out.giftBindings.g1.position, 'random')
+  assert.equal('giftBindings' in out, false)
+  assert.deepEqual(out, GIFT_DEFAULTS)
 })
 
 // ---------------------------------------------------------------------------
