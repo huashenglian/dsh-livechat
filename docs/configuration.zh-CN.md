@@ -198,6 +198,27 @@ UI 双语（zh/en），随宿主语言切换。
 | GET | `/api/danmaku/models` | — | `{groups:[{provider, models}]}` |
 | GET | `/api/danmaku/heat` | `window=<秒>`（默认 30） | `{heat:0..1, events, windowSec, score}` |
 
+### 预设包
+
+| 方法 | 路径 | Body | 返回 |
+|---|---|---|---|
+| GET | `/api/danmaku/presets` | — | `{packs, order}`（当前已落盘的预设包） |
+| PUT / POST | `/api/danmaku/presets` | `{packs:{...}, order?}` 或 `{store:{...}}`；`{action:'reset'}` 恢复内置包 | `{packs, order}`；reset 返回内置默认包 |
+| POST | `/api/danmaku/presets/import` | `{name, data, existing?}` | `{ok:true, add:[string], detectedShape, stats:{parsed, droppedShort, overChars, failed, dupExisting, dupInFile}, name, existingCount}` |
+
+`POST /api/danmaku/presets/import` 是**预设包编辑器的文件导入**（0.6.12 起）：浏览器把文件读成文本放进 `data`，`name` 只用于按扩展名分派（`.txt` / `.csv` / `.tsv` / `.json` / `.jsonl` / `.ndjson` / `.xml`），`existing` 是该包**当前草稿**的全部行，一起送上来做去重（`trim → NFC → 精确比较`，区分大小写）。
+
+- **上限 16 MB（`PRESET_IMPORT_MAX_BYTES = 16 * 1024 * 1024`）**，由 `readCappedBody` 强制。注意上限**覆盖「文件正文 + `existing` 既有条目」合计**——把两万行草稿一起上传时，能塞进去的文件就更小；超限返回 413，`limitText` 明确写「16 MB（文件 + 现有条目合计）」。
+- 这个路由**只返回追加计划，不落盘**：`add` 由客户端追加到草稿，真正写入仍只有 `PUT /api/danmaku/presets`（编辑器底栏「保存」）。
+- 错误码：`405 POST required`；`413 too_large`（带 `limitBytes` / `limitText` / `bytes`）；`400 aborted`（请求被中断）；`400 bad-json`；`400 bad-body`（请求体不是 `{name, data, existing}` 对象）；`400 empty-data`（`data` 为空）；`400 bad-existing`（`existing` 不是数组）；`400 no-entries` 或解析器给出的原因（附 `detectedShape` 与 `stats`，**JSON 解析成功却抽不到条目时绝不返回 200**）；`400 import-failed` 兜底。
+
+```bash
+# 把 danmaku.json 的正文塞进 data（-d @- 从 stdin 读，jq 负责转义）
+jq -Rs '{name:"danmaku.json", data:., existing:[]}' danmaku.json \
+  | curl -X POST http://127.0.0.1:3080/api/danmaku/presets/import \
+      -H 'Content-Type: application/json' --data-binary @-
+```
+
 ### 会话池
 
 | 方法 | 路径 | Query/Body | 返回 |

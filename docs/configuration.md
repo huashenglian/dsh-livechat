@@ -198,6 +198,27 @@ All routes are `kind: 'exact'` (path-unique). GET/POST share a handler per path 
 | GET | `/api/danmaku/models` | — | `{groups:[{provider, models:[{id,name}]}]}` |
 | GET | `/api/danmaku/heat` | `window=<sec>` (default 30) | `{heat:0..1, events, windowSec, score}` |
 
+### Preset packs
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET | `/api/danmaku/presets` | — | `{packs, order}` (the preset store as persisted) |
+| PUT / POST | `/api/danmaku/presets` | `{packs:{...}, order?}` or `{store:{...}}`; `{action:'reset'}` restores the built-in packs | `{packs, order}`; reset returns the built-in defaults |
+| POST | `/api/danmaku/presets/import` | `{name, data, existing?}` | `{ok:true, add:[string], detectedShape, stats:{parsed, droppedShort, overChars, failed, dupExisting, dupInFile}, name, existingCount}` |
+
+`POST /api/danmaku/presets/import` backs the **pack editor's file import** (since 0.6.12): the browser reads the file into `data`, `name` is used only to dispatch on the extension (`.txt` / `.csv` / `.tsv` / `.json` / `.jsonl` / `.ndjson` / `.xml`), and `existing` is the pack's **current draft lines**, sent along so the host can dedupe (`trim → NFC → exact`, case-sensitive).
+
+- The **cap is 16 MB (`PRESET_IMPORT_MAX_BYTES = 16 * 1024 * 1024`)**, enforced by `readCappedBody`. Note it covers **the file body plus `existing` combined** — the larger the draft you upload, the smaller the file that fits. Over the cap returns 413 with `limitText` reading 「16 MB（文件 + 现有条目合计）」.
+- The route **returns an append plan and never writes to disk**: the client appends `add` to the draft, and the only writer is still `PUT /api/danmaku/presets` (the editor footer's Save).
+- Error codes: `405 POST required`; `413 too_large` (with `limitBytes` / `limitText` / `bytes`); `400 aborted` (request interrupted); `400 bad-json`; `400 bad-body` (body is not a `{name, data, existing}` object); `400 empty-data` (`data` empty); `400 bad-existing` (`existing` not an array); `400 no-entries` or the parser's own reason (with `detectedShape` and `stats` — **valid JSON that yields zero entries is never a 200**); `400 import-failed` as the catch-all.
+
+```bash
+# Wrap the file body into `data` (jq does the escaping; -d @- reads stdin)
+jq -Rs '{name:"danmaku.json", data:., existing:[]}' danmaku.json \
+  | curl -X POST http://127.0.0.1:3080/api/danmaku/presets/import \
+      -H 'Content-Type: application/json' --data-binary @-
+```
+
 ### Session pools
 
 | Method | Path | Query / body | Returns |

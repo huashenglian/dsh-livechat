@@ -28,6 +28,52 @@ Turn the whole feature off with `presetsEnabled: false` (default `true`). With p
 - **Deleting a pack is staged, not applied.** The red trash button opens a confirmation (red title + pack name); confirming drops the pack **from the draft** (the content section's pack dropdown loses it too) while the **server and disk stay untouched**. The deletion only becomes real when you press the card's **Save**. If `presetPack` pointed at the removed pack it is re-pointed at the first survivor, so no dangling reference is stored.
 - A saved deletion also stops being sampled **this session**: `applyPresetStore()` now rebuilds the runtime pack table instead of merging into it (it used to only add), so a deleted pack is gone immediately rather than after a restart.
 
+### Import & list view (since 0.6.12)
+
+The pack editor's title row is now three sections: **Import** &#124; **Text / List** toggle, level with the title.
+
+**Two views**
+
+- The default view follows the row count: **more than 500 rows opens in the list view**, otherwise the text view (re-derived on every pack switch; a pack that crosses 500 rows because of an import switches to the list immediately). A 22k-line pack never degrades into one ~1MB textarea.
+- Text mode normalizes every line first and only then joins with newlines, so a line containing a newline never splits into two. Writing back splits on newlines, normalizes each line and drops empty strings only (single-character danmaku like 「6」 survive).
+- Both views are controlled and write through to the draft on every keystroke. Switching views only clears the selection and resets the page — the round trip is lossless.
+
+**List view**
+
+| Element | Behaviour |
+|---|---|
+| Search bar | Case-insensitive **substring** match. The **full set is filtered first, then paginated**, so search spans every page and the hit count and page count are those of the filtered result |
+| `Select all filtered (N)` | Selects the filtered result across **all pages** — not the whole pack |
+| `Delete selected (N)` | Deletes by underlying row index |
+| Row: `[checkbox][input][×]` | Checkbox for bulk actions; the input writes through on change; `×` deletes that row |
+| `＋ Add entry` | Appends one empty row at the end |
+| Pager + `Per page` | Page size lives in localStorage as `dsh-danmaku-preset-page-size`, **default 50, clamped 10..500** (a UI preference, not a config field, so it is per browser) |
+
+Two semantics worth knowing:
+
+- **Emptying a row never deletes it** (D15). The empty row stays, its input border turns red, and only `×` or Delete selected actually removes it. Auto-deleting would shift every later selected index, so a bulk delete would hit the wrong rows.
+- **Select-all means the current filtered result** (D16). The button shows the hit count, so what you are selecting is never a guess.
+
+**File import**
+
+`.txt` / `.csv` / `.tsv` / `.json` / `.jsonl` / `.ndjson` / `.xml` (bilibili `<d>` danmaku) are supported, dispatched on the **lower-cased extension** (with any `?query` / `#hash` stripped):
+
+| Extension | Parsing |
+|---|---|
+| `.json` | `JSON.parse`. Array elements that are strings are used directly; objects are read by priority `barrage → text → content → line → msg → message`. A string root and a single object are accepted too |
+| `.jsonl` / `.ndjson` | `JSON.parse` per line, same field priority; unparsable lines only count toward `failed` |
+| `.csv` / `.tsv` | RFC 4180, taking the **first field of each record** (quoted fields, `""` escaping, CRLF and newlines inside quotes are all supported; an unclosed quote runs to the end of the text) |
+| `.xml` | Extracts the text of `<d …>text</d>` and applies minimal entity unescaping (`&lt;` `&gt;` `&quot;` `&#39;` `&#x27;` `&nbsp;` `&amp;`) |
+| anything else (including `.txt` and no extension) | Split on newlines |
+
+The heavy lifting happens on the host: `POST /api/danmaku/presets/import` (see [configuration.md](configuration.md)). The browser only reads the file into text.
+
+- **Dedupe rule**: `trim → NFC normalize → exact comparison` (**case-sensitive**). Compared against both the pack's current entries and the entries collected in this batch; `add` keeps the file's original order.
+- **Append, never overwrite.** New entries land at the end of the pack's `lines`; existing entries are untouched.
+- **Normalization**: BOM and C0/C1 controls are stripped (emoji survive), **newlines and tabs inside an entry are folded to a single space**, then trimmed. The only drop condition is "empty after normalization"; entries over 48 characters are **not dropped and not truncated**, they only count toward the `overChars` hint (the 48-character cap applies to the LLM path only).
+- **Result, three counts**: added = `add.length`; existing = `dupExisting + dupInFile`; skipped = `droppedShort + failed`.
+- **Draft only.** An import does not write to disk either — the footer Save still is.
+
 ## Event-triggered sampling
 
 Each event maps to a burst size and preferred tags:
