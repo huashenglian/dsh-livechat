@@ -1,0 +1,20 @@
+{
+  "actions": [
+    {
+      "addChatItemAction": {
+        "item": {
+          "liveChatTextMessageRenderer": {
+            "message": {
+              "runs": [
+                {
+                  "text": "hello"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "continuation": "abc"
+}

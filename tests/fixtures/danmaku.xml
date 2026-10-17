@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<i>
+<d p="1,1,25,16777215,1715000000,0,abcd,0">测试 &amp; 弹幕</d>
+<d p="2,1,25,16777215,1715000001,0,efgh,0">&lt;尖括号&gt; &quot;引号&quot; &#39;单引号&#39;</d>
+<chatserver>local</chatserver>
+</i>
