@@ -134,6 +134,14 @@ test('parsePresetImport BOM + CRLF + 制表符', () => {
   assert.deepEqual(r.entries, ['a', 'b c', 'd'])
 })
 
+// fixture 字节会被 core.autocrlf 归一（blob 里是 LF），CRLF 契约改由字面量断言保证，
+// 这样在任何 checkout 字节下都真的在测 CRLF，而不是测「恰好能通过」的 LF。
+test('parsePresetImport 字面 CRLF / 孤立 CR / BOM（不依赖 fixture 字节）', () => {
+  assert.deepEqual(parsePresetImport('﻿a\r\nb\r\n', 'x.txt').entries, ['a', 'b'])
+  assert.deepEqual(parsePresetImport('a\rb\r', 'x.txt').entries, ['a', 'b'])
+  assert.deepEqual(parsePresetImport('﻿"a,b"\r\n"c""d"\r\n', 'x.csv').entries, ['a,b', 'c"d'])
+})
+
 test('parsePresetImport .csv：首列', () => {
   const r = parsePresetImport(fixture('plain.csv'), 'plain.csv')
   assert.deepEqual(r.entries, ['aaa', 'bbb', 'ccc'])
