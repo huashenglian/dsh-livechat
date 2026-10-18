@@ -212,6 +212,31 @@ test('parsePresetImport .xml：无 <d> 节点时给出可读原因（D9b）', ()
   assert.match(r.detectedShape, /未提取到弹幕/)
 })
 
+test('parsePresetImport .xml：未闭合 <d> 100KB 线性完成且 0 条（防 O(n²) 卡死）', () => {
+  // 旧写法 /<d\b[^>]*>([\s\S]*?)<\/d>/gi 对未闭合 <d> 是 O(n²)：100KB 实测 4.4s。
+  const big = '<i><d p="1,1,25,16777215">' + 'a'.repeat(100 * 1024) + '</i>'
+  const t0 = Date.now()
+  const r = parsePresetImport(big, 'big.xml')
+  const elapsed = Date.now() - t0
+  assert.deepEqual(r.entries, [])
+  assert.equal(r.ok, false)
+  assert.ok(elapsed < 1500, 'unclosed <d> 100KB took ' + elapsed + 'ms (expected < 1500ms)')
+})
+
+test('parsePresetImport .xml：嵌套 <d> 不跨元素误匹配', () => {
+  // 旧写法会从第一个 <d> 一路吞到最后一个 </d>，抓出 "a<d>b"。
+  const r = parsePresetImport('<d>a<d>b</d>', 'x.xml')
+  assert.deepEqual(r.entries, ['b'])
+})
+
+test('parsePresetImport .xml：多个正常 <d> 全部解析', () => {
+  const r = parsePresetImport(
+    '<i><d p="1">一</d><d p="2">二 &amp; 三</d><d p="3">四</d></i>',
+    'x.xml'
+  )
+  assert.deepEqual(r.entries, ['一', '二 & 三', '四'])
+})
+
 test('parsePresetImport JSON 解析失败不抛异常且带原因（D9b）', () => {
   const r = parsePresetImport('{not json', 'x.json')
   assert.deepEqual(r.entries, [])
@@ -265,6 +290,14 @@ test('dedupePresetLines trim + NFC：ñ 两种拼法判同', () => {
   const r = dedupePresetLines([' ñ '.normalize('NFC')], ['n\u0303'])
   assert.deepEqual(r.add, [])
   assert.equal(r.dupExisting, 1)
+})
+
+test('dedupePresetLines 既有行先规整：存量的 "a\\nb" 与导入的 "a b" 判同', () => {
+  assert.deepEqual(dedupePresetLines(['a\nb'], ['a b']), {
+    add: [],
+    dupExisting: 1,
+    dupInFile: 0,
+  })
 })
 
 test('dedupePresetLines 区分大小写', () => {
