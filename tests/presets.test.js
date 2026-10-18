@@ -308,3 +308,58 @@ test('dedupePresetLines 区分大小写', () => {
 test('dedupePresetLines 空入参', () => {
   assert.deepEqual(dedupePresetLines([], []), { add: [], dupExisting: 0, dupInFile: 0 })
 })
+
+// 0.6.12 fix: presetPack is a user-defined id space. The server used to reset any
+// id that was not a built-in back to 'general' inside clampConfig, which silently
+// rewrote a selected CUSTOM pack on every config save — the 预设包 dropdown snapped
+// back to the first pack and the sampler kept serving 通用 lines even after the user
+// deleted every built-in pack. Only a missing/empty id falls back.
+test('clampConfig 保留自定义 presetPack（不再被钳回 general）', async () => {
+  const { clampConfig } = await import('../lib/index.js')
+  assert.equal(clampConfig({ presetPack: 'pack_mkz1x2' }).presetPack, 'pack_mkz1x2')
+  assert.equal(clampConfig({ presetPack: 'general' }).presetPack, 'general')
+  assert.equal(clampConfig({ presetPack: 'coding' }).presetPack, 'coding')
+  assert.equal(clampConfig({ presetPack: '' }).presetPack, 'general')
+  assert.equal(clampConfig({ presetPack: null }).presetPack, 'general')
+  assert.equal(clampConfig({}).presetPack, 'general')
+  // 保存一轮只改 presetPack 的合并（settings modal onSave 的 POST 形状）不得改动其它键
+  const merged = clampConfig({ presetPack: 'pack_x', density: 3 })
+  assert.equal(merged.presetPack, 'pack_x')
+  assert.equal(merged.density, 3)
+  // 未被提供的键仍取宿主默认值（DEFAULTS.fontSize = 16），证明这是合并而非替换
+  assert.equal(merged.fontSize, 16)
+})
+
+// 0.6.12 fix: getPackLines used to fall through to PRESET_PACKS.general for any
+// missing id, so the sampler served 通用 lines even after the user deleted every
+// built-in pack. The fallback now only applies to id-matched built-ins; deleted
+// packs and the general-after-delete case return []. This is the server-side half
+// of "删掉所有默认包后选新建包不再刷出默认弹幕".
+test('samplePresets 不再回退到 PRESET_PACKS.general', () => {
+  // 删除所有内置包后 sampler 不应继续吐出 通用 条目
+  const r = samplePresets('general', 'user_message', { count: 5, lines: [] })
+  assert.deepEqual(r, [], 'expected empty after every built-in deleted; got ' + JSON.stringify(r))
+  // 自定义包传 lines 时只从这里抽
+  const r2 = samplePresets('pack_x', 'user_message', { count: 5, lines: ['A', 'B', 'C'] })
+  assert.equal(r2.length, 3)
+  assert.ok(r2.every((x) => ['A', 'B', 'C'].includes(x.content)))
+  // 完全没传 lines 且 id 是内置时仍可工作（首次安装/seed）
+  const r3 = samplePresets('general', 'user_message', { count: 2 })
+  assert.equal(r3.length, 2)
+  assert.ok(r3.every((x) => PRESET_PACKS.general.some((y) => (typeof y === 'string' ? y : y.content) === x.content)))
+})
+
+test('getPackLines 自定义包优先于硬编码 general 兜底', async () => {
+  const { getPackLines } = await import('../lib/index.js')
+  // 1) 自定义包即便与 general 撞名也以包内行为准
+  const custom = { packs: { pack_x: { name: 'X', lines: ['hello', 'world'] }, order: ['pack_x'] } }
+  const r1 = getPackLines('pack_x', custom)
+  assert.deepEqual(r1, ['hello', 'world'])
+  // 2) 用户把 general 从持久化里删掉后，getPackLines('general', store) 不再回退
+  //    到硬编码的 PRESET_PACKS.general（这是「即使删了所有默认包仍刷默认弹幕」的根因）
+  //    关键：store 里没有 'general' 这个 key，才能命中新逻辑的「兜底只对 id 命中生效」
+  const noGeneral = { packs: { coding: { name: '编程', lines: ['1+1=2'] }, order: ['coding'] } }
+  assert.deepEqual(getPackLines('general', noGeneral), [])
+  // 3) 完全找不到的 id 也返回 [] 而非 general
+  assert.deepEqual(getPackLines('pack_nope', noGeneral), [])
+})
