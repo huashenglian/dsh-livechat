@@ -369,6 +369,22 @@ test('client 预设视图：记住用户选择并持久化（0.6.13）', () => {
   assert.match(src, /function switchView\(next\) \{[^}]*writePresetView\(next\)/)
 })
 
+// 0.6.13 follow-up: the cap is a display-level setting, not an LLM-only one, so
+// its row belongs in 基础 (was in the LLM section) and is mirrored into the
+// floating quick panel. Same static-assertion net as above: client.js is a
+// browser bundle node cannot import.
+test('client 单条字数上限：位于基础分区，且悬浮窗可改（0.6.13）', () => {
+  const src = readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8')
+  const basicsAt = src.indexOf("'data-sec': 'basics'")
+  const rowAt = src.indexOf("row('styleMaxChars'")
+  const nextSecAt = src.indexOf("'data-sec': '", basicsAt + 1)
+  assert.ok(basicsAt > -1 && rowAt > -1 && nextSecAt > basicsAt, 'anchor missing in client.js')
+  // Inside the basics section = after its header, before the next section header.
+  assert.ok(rowAt > basicsAt && rowAt < nextSecAt, "row('styleMaxChars') 应在基础分区内")
+  // Floating quick panel mirror, persisting through patchLive.
+  assert.match(src, /patchLive\(\{ styleMaxChars: v \}\)/)
+})
+
 // 0.6.12 fix: getPackLines used to fall through to PRESET_PACKS.general for any
 // missing id, so the sampler served 通用 lines even after the user deleted every
 // built-in pack. The fallback now only applies to id-matched built-ins; deleted

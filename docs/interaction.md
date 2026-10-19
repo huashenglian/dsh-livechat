@@ -10,7 +10,7 @@ Everything you can touch: the floating control ball, hover-to-pause, click-for-d
 A small draggable ball sits over the conversation area (top-right by default). It's your always-on quick control:
 
 - **Drag** to reposition — position persists in `localStorage` (`dsh-danmaku-ball-pos`) per-browser.
-- **Click** to pop a quick-control menu: toggle danmaku on/off, pause/resume, open settings, send a message.
+- **Click** to pop a quick-control menu: danmaku on/off, hover interaction, opacity, scroll speed, font size, **per-comment char cap** (since 0.6.13 — same value as the settings card's Basics section, applied and persisted immediately), max on screen, display area, LLM switch — plus buttons to open the full settings card or the display-area editor.
 - **Idle** state shows a compact dot; **active** state (recent triggers) shows a livelier pop.
 
 The ball hides when danmaku is fully disabled, and reappears on re-enable.
