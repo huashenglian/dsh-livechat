@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.6.12-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.6.13-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.6.12"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.6.13"}
 ```
 
 ---
@@ -99,6 +99,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 
 | Version | What changed |
 |---|---|
+| 0.6.13 | **Per-line cap raised to 200** (8–200, default 24) — five pool/parse paths each hard-coded 48 and silently cut longer text, and the setting could not be raised; **the Text/List choice is now a global, persisted preference** (`dsh-danmaku-preset-view` in localStorage — survives pack switches, reopening the editor and restarting dsh; packs over 500 rows still open in list to avoid a 1 MB textarea) | git log |
 | 0.6.0 | Gift module UX rework: single-entry modal (asset warehouse / effect position / basics / test), 3 default gift cards |
 | 0.6.1 | Weight edits apply immediately + refresh-write failures reported |
 | 0.6.2 | Floating-ball out-of-bounds clamping fixed — a persisted position can no longer hide the ball |

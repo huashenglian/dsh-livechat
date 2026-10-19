@@ -70,7 +70,7 @@ The heavy lifting happens on the host: `POST /api/danmaku/presets/import` (see [
 
 - **Dedupe rule**: `trim → NFC normalize → exact comparison` (**case-sensitive**). Compared against both the pack's current entries and the entries collected in this batch; `add` keeps the file's original order.
 - **Append, never overwrite.** New entries land at the end of the pack's `lines`; existing entries are untouched.
-- **Normalization**: BOM and C0/C1 controls are stripped (emoji survive), **newlines and tabs inside an entry are folded to a single space**, then trimmed. The only drop condition is "empty after normalization"; entries over 48 characters are **not dropped and not truncated**, they only count toward the `overChars` hint (the 48-character cap applies to the LLM path only).
+- **Normalization**: BOM and C0/C1 controls are stripped (emoji survive), **newlines and tabs inside an entry are folded to a single space**, then trimmed. The only drop condition is "empty after normalization"; entries over 48 characters are **not dropped and not truncated**, they only count toward the `overChars` hint (48 is only the import-side soft hint; the LLM path is capped by `styleMaxChars`, 8–200).
 - **Result, three counts**: added = `add.length`; existing = `dupExisting + dupInFile`; skipped = `droppedShort + failed`.
 - **Draft only.** An import does not write to disk either — the footer Save still is.
 
@@ -95,7 +95,7 @@ Flip `llmEnabled: true` (default on) to have an LLM generate burst comments. The
 - recent conversation lines (capped, privacy-trimmed)
 - recent event kinds
 
-It requests `llmBurstCount` short strings as a JSON array, parses defensively (fenced code blocks, bare arrays, or even newline-split lines), filters by `blockedWords` and a 48-char cap, and ships them tagged `source: 'ai'`.
+It requests `llmBurstCount` short strings as a JSON array, parses defensively (fenced code blocks, bare arrays, or even newline-split lines), filters by `blockedWords` and a 200-char cap, and ships them tagged `source: 'ai'`.
 
 ### Style templates
 
@@ -170,7 +170,7 @@ LLM calls can fail (no provider, timeout, parse error, network). When they do, t
 | `llmBurstCount` | 5 | 1–20 | Comments per LLM burst |
 | `llmIntervalSec` | 18 | 5–120 | Interval-mode cadence |
 | `stylePrompt` | 吐槽风格… | string | Free-form LLM voice |
-| `styleMaxChars` | 24 | 8–48 | Per-comment char cap |
+| `styleMaxChars` | 24 | 8–200 | Per-comment char cap (one line, clipped at 200) |
 | `styleTemplates` | 5 built-in | array | Named voice presets |
 | `wakeupType` | smart | smart/interval/toolcall | LLM trigger strategy |
 | `wakeupEvents` | user_message, reply_complete | subset | Smart-mode triggers |

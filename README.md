@@ -4,7 +4,7 @@
 
 # dsh-livechat
 
-[![version](https://img.shields.io/badge/version-0.6.12-blue)](https://github.com/huashenglian/dsh-livechat)
+[![version](https://img.shields.io/badge/version-0.6.13-blue)](https://github.com/huashenglian/dsh-livechat)
 [![license](https://img.shields.io/badge/license-MIT-green)](#许可证)
 [![platform](https://img.shields.io/badge/platform-DeepSeek%20Harness-orange)](https://github.com/deepseek-ai)
 
@@ -53,7 +53,7 @@ npx @deepseek-ai/dsh web
 
 ```bash
 curl http://127.0.0.1:3080/api/danmaku/health
-# {"ok":true,"name":"dsh-danmaku","version":"0.6.12"}
+# {"ok":true,"name":"dsh-danmaku","version":"0.6.13"}
 ```
 
 ---
@@ -99,6 +99,7 @@ curl http://127.0.0.1:3080/api/danmaku/health
 
 | 版本 | 主要变化 |
 |---|---|
+| 0.6.13 | **单条字数上限放宽到 200**（8–200，默认 24）——此前 5 处池/解析路径各自硬编码 48，超长行会被静默截断且设置改不上去；**预设包编辑器的 文本/列表 改成全局记忆**（localStorage `dsh-danmaku-preset-view`，切换预设包 / 重开窗口 / 重启 dsh 都保持；>500 行仍强制列表，避免 1MB textarea） | git log |
 | 0.6.0 | 礼物模块 UX 重构：单入口大模态（素材仓库 / 特效位置 / 基础 / 测试），默认 3 张礼物卡 |
 | 0.6.1 | 权重编辑即时生效 + 刷新写失败上报 |
 | 0.6.2 | 悬浮球越界坐标夹取修复——持久化位置不再隐藏悬浮球 |

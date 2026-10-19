@@ -101,7 +101,7 @@ UI 双语（zh/en），随宿主语言切换。
 | `density` | 3 | 1–5 | 生成密度 |
 | `ambientMinMs` | 500 | 400–10000 | 环境最小间隔 (ms) |
 | `ambientMaxMs` | 1400 | ≥min+200, ≤20000 | 环境最大间隔 (ms) |
-| `styleMaxChars` | 24 | 8–48 | 单条字符上限 |
+| `styleMaxChars` | 24 | 8–200 | 单条字符上限（单行硬上限 200） |
 
 ### LLM
 

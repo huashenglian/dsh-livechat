@@ -330,6 +330,45 @@ test('clampConfig 保留自定义 presetPack（不再被钳回 general）', asyn
   assert.equal(merged.fontSize, 16)
 })
 
+// 0.6.13: one line's hard ceiling lived as a literal 48 in five independent
+// pool/parse paths (appendPool, likeInPool, patchPoolItem, POST /like, LLM
+// output parsing), so long text was silently cut on its way into a session pool
+// AND `styleMaxChars` could never be raised above 48. One constant now.
+test('clipContent 只按 200 字截断（48 字不再被截断）', async () => {
+  const { clipContent, MAX_CONTENT_CHARS } = await import('../lib/index.js')
+  assert.equal(MAX_CONTENT_CHARS, 200)
+  const s48 = '甲'.repeat(48)
+  assert.equal(clipContent(s48), s48, '48-char line must pass through untouched')
+  assert.equal(clipContent('乙'.repeat(200)).length, 200)
+  assert.equal(clipContent('丙'.repeat(201)).length, 200)
+  assert.equal(clipContent(null), '')
+  assert.equal(clipContent(undefined), '')
+})
+
+test('clampConfig 单条字数上限上限为 200（0.6.13）', async () => {
+  const { clampConfig } = await import('../lib/index.js')
+  assert.equal(clampConfig({ styleMaxChars: 120 }).styleMaxChars, 120)
+  assert.equal(clampConfig({ styleMaxChars: 200 }).styleMaxChars, 200)
+  assert.equal(clampConfig({ styleMaxChars: 201 }).styleMaxChars, 200)
+  assert.equal(clampConfig({ styleMaxChars: 999 }).styleMaxChars, 200)
+  assert.equal(clampConfig({ styleMaxChars: 4 }).styleMaxChars, 8)
+})
+
+// client.js is a browser bundle (window.__ModuleLoader__.load), so node cannot
+// import it. Guard the three wiring points behind the 0.6.12 complaint that the
+// 文本/列表 choice "reset on every pack switch and again after a restart":
+// a static assertion is the cheapest real regression net for this file.
+test('client 预设视图：记住用户选择并持久化（0.6.13）', () => {
+  const src = readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8')
+  assert.match(src, /PRESET_VIEW_KEY\s*=\s*'dsh-danmaku-preset-view'/)
+  assert.match(src, /localStorage\.setItem\(PRESET_VIEW_KEY,\s*v\)/)
+  // Pack switch must resolve the stored preference — never re-derive per pack.
+  assert.match(src, /React\.useEffect\(function \(\) \{\s*setView\(resolveViewFor\(/)
+  assert.doesNotMatch(src, /setView\(defaultViewFor\(/)
+  // Only an explicit toggle writes the preference.
+  assert.match(src, /function switchView\(next\) \{[^}]*writePresetView\(next\)/)
+})
+
 // 0.6.12 fix: getPackLines used to fall through to PRESET_PACKS.general for any
 // missing id, so the sampler served 通用 lines even after the user deleted every
 // built-in pack. The fallback now only applies to id-matched built-ins; deleted

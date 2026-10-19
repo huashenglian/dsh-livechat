@@ -101,7 +101,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `density` | 3 | 1–5 | Overall spawn density |
 | `ambientMinMs` | 500 | 400–10000 | Min ambient spawn gap (ms) |
 | `ambientMaxMs` | 1400 | ≥min+200, ≤20000 | Max ambient spawn gap (ms) |
-| `styleMaxChars` | 24 | 8–48 | Per-comment char cap |
+| `styleMaxChars` | 24 | 8–200 | Per-comment char cap (one line, clipped at 200) |
 
 ### LLM
 
