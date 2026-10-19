@@ -101,7 +101,7 @@ UI 双语（zh/en），随宿主语言切换。
 | `density` | 3 | 1–5 | 生成密度 |
 | `ambientMinMs` | 500 | 400–10000 | 环境最小间隔 (ms) |
 | `ambientMaxMs` | 1400 | ≥min+200, ≤20000 | 环境最大间隔 (ms) |
-| `styleMaxChars` | 24 | 8–200 | 单条字符上限（单行硬上限 200） |
+| `contentMaxChars` | 200 | 8–2000 | **单条弹幕的真实硬上限**：池写入 / 点赞 / 改写 / LLM 输出解析统一按它截断；设置卡「基础」与悬浮球快捷面板同源 |
 
 ### LLM
 
@@ -112,6 +112,7 @@ UI 双语（zh/en），随宿主语言切换。
 | `llmBurstCount` | 5 | 1–20 | 每次突发数 |
 | `llmIntervalSec` | 18 | 5–120 | interval 节奏 |
 | `stylePrompt` | 吐槽风格，短促有力 | 字符串 | 自由风格 |
+| `styleMaxChars` | 24 | 8–200 | 「LLM 弹幕字数上限」：仅写进提示词请 LLM 保持短句，**本身不截断任何内容**（真实硬上限是 `contentMaxChars`） |
 | `styleTemplates` | 5 个内置 | `{id,name,prompt}` 数组 | 命名风格 |
 | `wakeupType` | smart | smart/interval/toolcall | 唤醒策略 |
 | `wakeupEvents` | [user_message, reply_complete] | 子集 | smart 触发 |

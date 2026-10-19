@@ -70,7 +70,7 @@
 
 - **去重口径**：`trim → NFC 归一 → 精确比较`（**区分大小写**）。同时与「当前包已有条目」和「本批已收」比对，`add` 保持文件里的原顺序。
 - **追加，不覆盖**：新条目追加到该包 `lines` 末尾，旧条目一个都不动。
-- **行规整**：去 BOM 与 C0/C1 控制符（emoji 不受影响）、**条目内换行与制表符折叠为单个空格**、trim。唯一丢弃条件是「规整后为空」；超过 48 字符**不丢弃不截断**，只计入 `overChars` 提示（48 只是导入侧的软提示；LLM 路径由 `styleMaxChars` 控制，8–200）。
+- **行规整**：去 BOM 与 C0/C1 控制符（emoji 不受影响）、**条目内换行与制表符折叠为单个空格**、trim。唯一丢弃条件是「规整后为空」；超过 48 字符**不丢弃不截断**，只计入 `overChars` 提示（48 只是导入侧的软提示；LLM 路径的硬上限由 `contentMaxChars` 控制，默认 200，8–2000）。
 - **结果三段计数**：新增 = `add.length`；已存在 = `dupExisting + dupInFile`；跳过 = `droppedShort + failed`。
 - **只改草稿**：导入同样不落盘，落盘仍只有底栏「保存」。
 
@@ -153,7 +153,7 @@
 LLM 调用可能失败（无 provider、超时、解析错误、断网）。失败时 host **静默**降级到预设突发，标记 `source: 'preset'`、`reason: 'llm-fallback'`。无报错弹窗，覆盖层不中断——弹幕继续飘。（`presetsEnabled: false` 时没有可降级的预设：host 返回 `items: []` / `reason: 'presets-disabled'`，弹幕池不写入。）
 
 > [!NOTE]
-> LLM prompt 禁止泄露密钥/路径或剧透后续步骤。输出还受 `styleMaxChars`（默认 24）截断并过 `blockedWords`。
+> LLM prompt 禁止泄露密钥/路径或剧透后续步骤。输出还受 `contentMaxChars`（默认 200）截断并过 `blockedWords`；`styleMaxChars`（默认 24）只写进提示词请 LLM 保持短句，本身不截断。
 
 ## 屏蔽词
 
@@ -170,7 +170,7 @@ LLM 调用可能失败（无 provider、超时、解析错误、断网）。失�
 | `llmBurstCount` | 5 | 1–20 | 每次突发条数 |
 | `llmIntervalSec` | 18 | 5–120 | interval 模式节奏 |
 | `stylePrompt` | 吐槽风格… | 字符串 | 自由 LLM 风格 |
-| `styleMaxChars` | 24 | 8–200 | 单条字符上限（单行硬上限 200） |
+| `styleMaxChars` | 24 | 8–200 | 「LLM 弹幕字数上限」：仅提示词，不截断（真实硬上限是 `contentMaxChars`，默认 200） |
 | `styleTemplates` | 5 个内置 | 数组 | 命名风格预设 |
 | `wakeupType` | smart | smart/interval/toolcall | LLM 触发策略 |
 | `wakeupEvents` | user_message, reply_complete | 子集 | smart 模式触发 |

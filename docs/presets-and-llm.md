@@ -70,7 +70,7 @@ The heavy lifting happens on the host: `POST /api/danmaku/presets/import` (see [
 
 - **Dedupe rule**: `trim → NFC normalize → exact comparison` (**case-sensitive**). Compared against both the pack's current entries and the entries collected in this batch; `add` keeps the file's original order.
 - **Append, never overwrite.** New entries land at the end of the pack's `lines`; existing entries are untouched.
-- **Normalization**: BOM and C0/C1 controls are stripped (emoji survive), **newlines and tabs inside an entry are folded to a single space**, then trimmed. The only drop condition is "empty after normalization"; entries over 48 characters are **not dropped and not truncated**, they only count toward the `overChars` hint (48 is only the import-side soft hint; the LLM path is capped by `styleMaxChars`, 8–200).
+- **Normalization**: BOM and C0/C1 controls are stripped (emoji survive), **newlines and tabs inside an entry are folded to a single space**, then trimmed. The only drop condition is "empty after normalization"; entries over 48 characters are **not dropped and not truncated**, they only count toward the `overChars` hint (48 is only the import-side soft hint; the LLM path's hard cap is `contentMaxChars`, default 200, 8–2000).
 - **Result, three counts**: added = `add.length`; existing = `dupExisting + dupInFile`; skipped = `droppedShort + failed`.
 - **Draft only.** An import does not write to disk either — the footer Save still is.
 
@@ -153,7 +153,7 @@ Settings groups **Wake advanced** and **Readable context** are collapsible (coll
 LLM calls can fail (no provider, timeout, parse error, network). When they do, the host **silently** falls back to a preset burst tagged `source: 'preset'` with `reason: 'llm-fallback'`. No error popups, no broken overlay — the crowd keeps talking. (With `presetsEnabled: false` there is no preset to fall back to: the host answers `items: []` / `reason: 'presets-disabled'` and the pool is left untouched.)
 
 > [!NOTE]
-> The LLM prompt forbids leaking secrets/paths or spoiling future steps. Output is also capped at `styleMaxChars` (default 24) and filtered by `blockedWords`.
+> The LLM prompt forbids leaking secrets/paths or spoiling future steps. Output is also clipped at `contentMaxChars` (default 200) and filtered by `blockedWords`; `styleMaxChars` (default 24) is prompt text only — it clips nothing.
 
 ## Blocked words
 
@@ -170,7 +170,7 @@ LLM calls can fail (no provider, timeout, parse error, network). When they do, t
 | `llmBurstCount` | 5 | 1–20 | Comments per LLM burst |
 | `llmIntervalSec` | 18 | 5–120 | Interval-mode cadence |
 | `stylePrompt` | 吐槽风格… | string | Free-form LLM voice |
-| `styleMaxChars` | 24 | 8–200 | Per-comment char cap (one line, clipped at 200) |
+| `styleMaxChars` | 24 | 8–200 | "LLM max chars": prompt text only, clips nothing (the real hard cap is `contentMaxChars`, default 200) |
 | `styleTemplates` | 5 built-in | array | Named voice presets |
 | `wakeupType` | smart | smart/interval/toolcall | LLM trigger strategy |
 | `wakeupEvents` | user_message, reply_complete | subset | Smart-mode triggers |

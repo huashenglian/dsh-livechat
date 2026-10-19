@@ -101,7 +101,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `density` | 3 | 1–5 | Overall spawn density |
 | `ambientMinMs` | 500 | 400–10000 | Min ambient spawn gap (ms) |
 | `ambientMaxMs` | 1400 | ≥min+200, ≤20000 | Max ambient spawn gap (ms) |
-| `styleMaxChars` | 24 | 8–200 | Per-comment char cap (one line, clipped at 200) |
+| `contentMaxChars` | 200 | 8–2000 | **The real per-line hard cap**: pool writes, likes, rewrites and LLM output parsing all clip to it; same value as the settings card's Basics section and the floating quick panel |
 
 ### LLM
 
@@ -112,6 +112,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `llmBurstCount` | 5 | 1–20 | Comments per burst |
 | `llmIntervalSec` | 18 | 5–120 | Interval-mode cadence |
 | `stylePrompt` | 吐槽风格，短促有力 | string | Free-form LLM voice |
+| `styleMaxChars` | 24 | 8–200 | "LLM max chars": written into the prompt to ask for short lines only — it **clips nothing** (the real hard cap is `contentMaxChars`) |
 | `styleTemplates` | 5 built-in | array of `{id,name,prompt}` | Named voice presets |
 | `wakeupType` | smart | smart/interval/toolcall | LLM trigger strategy |
 | `wakeupEvents` | [user_message, reply_complete] | subset of user_message/reply_complete/tool_call/task_done/tool_error | Smart-mode triggers |

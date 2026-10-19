@@ -345,13 +345,33 @@ test('clipContent 只按 200 字截断（48 字不再被截断）', async () => 
   assert.equal(clipContent(undefined), '')
 })
 
-test('clampConfig 单条字数上限上限为 200（0.6.13）', async () => {
+test('clampConfig styleMaxChars（LLM 弹幕字数上限）上限为 200（0.6.13）', async () => {
   const { clampConfig } = await import('../lib/index.js')
   assert.equal(clampConfig({ styleMaxChars: 120 }).styleMaxChars, 120)
   assert.equal(clampConfig({ styleMaxChars: 200 }).styleMaxChars, 200)
   assert.equal(clampConfig({ styleMaxChars: 201 }).styleMaxChars, 200)
   assert.equal(clampConfig({ styleMaxChars: 999 }).styleMaxChars, 200)
   assert.equal(clampConfig({ styleMaxChars: 4 }).styleMaxChars, 8)
+})
+
+// 0.6.13 follow-up: styleMaxChars was never the cap — it is prompt text asking
+// the LLM for short lines and clips nothing. The real per-line cap is now a
+// setting (`contentMaxChars`, 8..2000, default 200) threaded into every
+// clipping path, so raising it actually lengthens danmaku.
+test('contentMaxChars 真实硬上限：clamp 8..2000、clipContent 按传入上限截断（0.6.13）', async () => {
+  const { clampConfig, clipContent, contentCap, CONTENT_MAX_CHARS_LIMIT } = await import('../lib/index.js')
+  assert.equal(CONTENT_MAX_CHARS_LIMIT, 2000)
+  assert.equal(clampConfig({}).contentMaxChars, 200, 'default when absent')
+  assert.equal(clampConfig({ contentMaxChars: 500 }).contentMaxChars, 500)
+  assert.equal(clampConfig({ contentMaxChars: 2000 }).contentMaxChars, 2000)
+  assert.equal(clampConfig({ contentMaxChars: 5000 }).contentMaxChars, 2000)
+  assert.equal(clampConfig({ contentMaxChars: 4 }).contentMaxChars, 8)
+  // The configured cap — not the 200 default — is what clipContent applies.
+  assert.equal(clipContent('甲'.repeat(300), 250).length, 250)
+  assert.equal(clipContent('乙'.repeat(300)).length, 200, 'no limit → default 200')
+  assert.equal(contentCap(undefined), 200)
+  assert.equal(contentCap('nope'), 200)
+  assert.equal(contentCap(150), 150)
 })
 
 // client.js is a browser bundle (window.__ModuleLoader__.load), so node cannot
@@ -369,20 +389,25 @@ test('client 预设视图：记住用户选择并持久化（0.6.13）', () => {
   assert.match(src, /function switchView\(next\) \{[^}]*writePresetView\(next\)/)
 })
 
-// 0.6.13 follow-up: the cap is a display-level setting, not an LLM-only one, so
-// its row belongs in 基础 (was in the LLM section) and is mirrored into the
-// floating quick panel. Same static-assertion net as above: client.js is a
-// browser bundle node cannot import.
-test('client 单条字数上限：位于基础分区，且悬浮窗可改（0.6.13）', () => {
+// 0.6.13 follow-up: `styleMaxChars` only asks the LLM for short lines
+// (prompt-level, clips nothing), so its row belongs in the LLM section. The
+// REAL per-line cap is `contentMaxChars` — that row lives in 基础 and is
+// mirrored into the floating quick panel. Same static-assertion net as above:
+// client.js is a browser bundle node cannot import.
+test('client 字数上限：contentMaxChars 在基础分区+悬浮窗，styleMaxChars 回 LLM 分区（0.6.13）', () => {
   const src = readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8')
   const basicsAt = src.indexOf("'data-sec': 'basics'")
-  const rowAt = src.indexOf("row('styleMaxChars'")
   const nextSecAt = src.indexOf("'data-sec': '", basicsAt + 1)
-  assert.ok(basicsAt > -1 && rowAt > -1 && nextSecAt > basicsAt, 'anchor missing in client.js')
+  const capRowAt = src.indexOf("row('contentMaxChars'")
+  assert.ok(basicsAt > -1 && nextSecAt > basicsAt && capRowAt > -1, 'anchor missing in client.js')
   // Inside the basics section = after its header, before the next section header.
-  assert.ok(rowAt > basicsAt && rowAt < nextSecAt, "row('styleMaxChars') 应在基础分区内")
+  assert.ok(capRowAt > basicsAt && capRowAt < nextSecAt, "row('contentMaxChars') 应在基础分区内")
+  // styleMaxChars (prompt-level) is back in the LLM section, after 基础.
+  const styleRowAt = src.indexOf("row('styleMaxChars'")
+  assert.ok(styleRowAt > nextSecAt, "row('styleMaxChars') 应在 LLM 分区（基础之后）")
   // Floating quick panel mirror, persisting through patchLive.
-  assert.match(src, /patchLive\(\{ styleMaxChars: v \}\)/)
+  assert.match(src, /patchLive\(\{ contentMaxChars: v \}\)/)
+  assert.doesNotMatch(src, /patchLive\(\{ styleMaxChars: v \}\)/)
 })
 
 // 0.6.12 fix: getPackLines used to fall through to PRESET_PACKS.general for any
