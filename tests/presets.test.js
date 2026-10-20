@@ -410,6 +410,23 @@ test('client 字数上限：contentMaxChars 在基础分区+悬浮窗，styleMax
   assert.doesNotMatch(src, /patchLive\(\{ styleMaxChars: v \}\)/)
 })
 
+// 0.6.13 follow-up: both WebGL2 atlases baked each line into a fixed 320px cell,
+// so every long danmaku lost its tail at ~20 chars no matter what contentMaxChars
+// said. Both renderers now use a variable-width shelf atlas; this fails if the
+// fixed-cell clamp ever comes back. (client.js is a bundle — static assert, as above.)
+test('client WebGL 图集：变宽 shelf，长弹幕不再被 320px 截断（0.6.13）', () => {
+  const src = readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8')
+  // Main-thread renderer (desktop resolves webgl2 before dom).
+  assert.match(src, /var ATLAS_W = 4096/)
+  assert.match(src, /var ATLAS_H = 2048/)
+  assert.match(src, /function allocAtlasCell\(w, h\) \{/)
+  assert.doesNotMatch(src, /ATLAS_CELL_W/)
+  // Worker renderer bakes in its own realm — same shelf atlas, same guarantee.
+  assert.match(src, /AW=4096,AH=2048/)
+  assert.match(src, /function allocCell\(w,h\)\{/)
+  assert.doesNotMatch(src, /CW=320/)
+})
+
 // 0.6.12 fix: getPackLines used to fall through to PRESET_PACKS.general for any
 // missing id, so the sampler served 通用 lines even after the user deleted every
 // built-in pack. The fallback now only applies to id-matched built-ins; deleted
@@ -442,4 +459,53 @@ test('getPackLines 自定义包优先于硬编码 general 兜底', async () => {
   assert.deepEqual(getPackLines('general', noGeneral), [])
   // 3) 完全找不到的 id 也返回 [] 而非 general
   assert.deepEqual(getPackLines('pack_nope', noGeneral), [])
+})
+
+// 0.6.13: cache and replay are LLM-only. Presets are generated live from the
+// current pack; a pool write from preset/like is how a deleted pack used to
+// come back on every session switch. index.js is imported by tests already,
+// but these wiring points are easier to pin statically (same approach as the
+// client assertions below).
+test('host 弹幕池：只缓存/回放 source=ai，预设点赞不写池（0.6.13）', () => {
+  const src = readFileSync(new URL('../lib/index.js', import.meta.url), 'utf8')
+  // Definition + the single AI write path. Any preset appendPool call returns.
+  assert.equal((src.match(/appendPool\(/g) || []).length, 2, '只能有定义 + AI 写池')
+  assert.match(src, /entries = entries\.filter\(\(e\) => e && e\.source === 'ai'\)/)
+  assert.match(src, /const all = readPool\(sessionId\)\.filter\(\(e\) => e && e\.source === 'ai'\)/)
+  assert.match(src, /function likeInPool\(sessionId, content, maxChars, source\)/)
+  assert.match(src, /if \(source !== 'ai'\) return \{ ok: true, liked: false \}/)
+  assert.match(src, /const candidates = all\.filter\(\(e\) => e && e\.source === 'ai'\)/)
+  assert.match(src, /const source = body\?\.source === 'ai' \? 'ai' : 'preset'/)
+  assert.match(src, /likeInPool\(sid, content, live\.contentMaxChars, source\)/)
+  // preset-sample must return samples only, never persist them.
+  const sampleAt = src.indexOf("path: '/api/danmaku/preset-sample'")
+  const sampleEnd = src.indexOf('webServer.register', sampleAt + 1)
+  assert.ok(sampleAt > -1 && sampleEnd > sampleAt, 'preset-sample route missing')
+  assert.doesNotMatch(src.slice(sampleAt, sampleEnd), /appendPool\(/)
+})
+
+// 0.6.13: the live 「单条字数上限」 must reach the NEXT danmaku, not just new
+// pool rows. One cap point (spawnCapped) covers queue, welcome, ambient pool
+// and preset fallback; the emoji image keeps its direct spawn. History and
+// work-pool rebuilds are AI-only, and an unknown pack never borrows general.
+test('client 实时字数上限 + 只回放 AI 弹幕（0.6.13）', () => {
+  const src = readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8')
+  // Mirrors the host clamp (8..2000, default 200).
+  assert.match(src, /out\.contentMaxChars = Math\.max\(8, Math\.min\(2000, Math\.floor\(Number\(out\.contentMaxChars\) \|\| DEFAULTS\.contentMaxChars\)\)\)/)
+  // One cap point, applied to every text item passed to the renderer.
+  assert.match(src, /function capLine\(content\) \{/)
+  // Host no-op likes must not paint the UI as liked.
+  assert.match(src, /if \(!data \|\| data\.liked !== true\) return/)
+  assert.match(src, /configRef\.current\.contentMaxChars/)
+  assert.match(src, /function spawnCapped\(list\) \{/)
+  assert.match(src, /content: capLine\(it && it\.content\)/)
+  // Definition + four text paths; only spawnCapped + emoji call the renderer.
+  assert.equal((src.match(/spawnCapped\(/g) || []).length, 5)
+  assert.equal((src.match(/rendererRef\.current\.spawn\(/g) || []).length, 2)
+  // Session history and work-pool rebuild are AI-only.
+  assert.match(src, /var items = \(\(data && data\.items\) \|\| \[\]\)\.filter\(function \(it\) \{ return it && it\.source === 'ai' \}\)/)
+  assert.match(src, /var usable = \(poolItems \|\| \[\]\)\.filter\(function \(e\) \{ return e && e\.source === 'ai' \}\)/)
+  // Before the store arrives (or after a pack is deleted) never borrow general.
+  assert.match(src, /list = presetStoreLoaded \? \[\] : \(PRESET_PACKS\[pack\] \|\| \[\]\)/)
+  assert.doesNotMatch(src, /runtimePresetPacks\.general/)
 })
