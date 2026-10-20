@@ -17,7 +17,7 @@ Three packs ship in the box (`lib/presets.js`), each tagged so events can pull r
 
 Pick one via `presetPack` in settings. When LLM is off, presets are the only source.
 
-Turn the whole feature off with `presetsEnabled: false` (default `true`). With presets off: ambient presets, event bursts and the host's LLM fallback all stop, **and** preset danmaku already recorded in a session pool are not replayed — only LLM danmaku remain. The switch is live (no reload) and persists like any other setting.
+Turn the whole feature off with `presetsEnabled: false` (default `true`). With presets off: ambient presets, event bursts and the host's LLM fallback all stop — only LLM danmaku remain. (Pool replay is AI-only since 0.6.13, so preset rows are never replayed anyway.) The switch is live (no reload) and persists like any other setting.
 
 ### Preset pack editor (since 0.6.10)
 
@@ -150,7 +150,7 @@ Settings groups **Wake advanced** and **Readable context** are collapsible (coll
 
 ### The safe fallback
 
-LLM calls can fail (no provider, timeout, parse error, network). When they do, the host **silently** falls back to a preset burst tagged `source: 'preset'` with `reason: 'llm-fallback'`. No error popups, no broken overlay — the crowd keeps talking. (With `presetsEnabled: false` there is no preset to fall back to: the host answers `items: []` / `reason: 'presets-disabled'` and the pool is left untouched.)
+LLM calls can fail (no provider, timeout, parse error, network). When they do, the host **silently** falls back to a preset burst tagged `source: 'preset'` with `reason: 'llm-fallback'`. No error popups, no broken overlay — the crowd keeps talking. The fallback burst is display-only and is not written to the pool. (With `presetsEnabled: false` there is no preset to fall back to: the host answers `items: []` / `reason: 'presets-disabled'` and the pool is left untouched.)
 
 > [!NOTE]
 > The LLM prompt forbids leaking secrets/paths or spoiling future steps. Output is also clipped at `contentMaxChars` (default 200) and filtered by `blockedWords`; `styleMaxChars` (default 24) is prompt text only — it clips nothing.
@@ -163,7 +163,7 @@ LLM calls can fail (no provider, timeout, parse error, network). When they do, t
 
 | Field | Default | Range | Effect |
 |---|---|---|---|
-| `presetsEnabled` | true | bool | Preset feature master switch; `false` = LLM only (no generation, no replay) |
+| `presetsEnabled` | true | bool | Preset feature master switch; `false` = LLM only (no preset generation or fallback; AI replay continues) |
 | `presetPack` | general | general/coding/casual | Preset selection |
 | `llmEnabled` | true | bool | LLM generation master switch |
 | `llmModel` | `-` | `-` or provider/model | LLM model id; `-` disables LLM generation |

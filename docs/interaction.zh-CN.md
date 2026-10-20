@@ -54,7 +54,7 @@
 
 ## 手发弹幕
 
-`userSend: true`（默认）在快捷菜单（或拖球）启用文本输入。输入短消息发送——以 `source: 'user'` 飘过，加入会话池，可被历史回放与点赞加权。同样受 `styleMaxChars` / `blockedWords` 约束。
+`userSend: true`（默认）在快捷菜单（或拖球）启用文本输入。输入短消息发送——以 `source: 'user'` 飘过。0.6.13 起弹幕池与回放改为 LLM 专属，手发文本只用于当前显示：不落盘、不回放、不参与点赞加权。同样受 `styleMaxChars` / `blockedWords` 约束。
 
 ## 热度条
 

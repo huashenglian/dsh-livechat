@@ -84,7 +84,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 - **Three layouts**: roll (scroll), top-fixed, bottom-fixed — weighted per-config
 - **Anti-occlusion**: overlay dims while you read, brightens when the crowd gets loud
 - **LLM with safe fallback**: generation fails → silent preset fallback, no error popups (no fallback once the preset master switch is off — LLM only)
-- **Per-session memory**: liked/replayed danmaku resurface; deleted sessions clean up automatically
+- **AI-only per-session memory**: only LLM comments are cached/replayed and likeable; presets stay live-generated, and deleted sessions clean up automatically
 - **Chromium-first**: tuned for Edge / Chrome; `translate3d`, page-`hidden` pause, on-screen cap
 - **Paused items stay**: hover/detail-locked danmaku remain on screen until they resume and leave the range
 - **Danmaku off = plugin off**: turning off 启用弹幕 stops every danmaku, gift effect and gift tip, and deletes a playing gift animation immediately; gift effects keep their own `giftEnabled` gate
@@ -99,7 +99,7 @@ When the agent sends a message, finishes a reply, calls a tool, or completes a t
 
 | Version | What changed |
 |---|---|
-| 0.6.13 | **The per-line cap is now a real, configurable hard cap** — five pool/parse paths used to hard-code 48 and silently cut longer text, with no way to raise them; new **`contentMaxChars`** (8–2000, default 200) is what the Basics section's **per-comment char cap** and the floating quick panel edit, and pool writes / likes / rewrites / LLM parsing all clip to it; the LLM section keeps **"LLM max chars"** (`styleMaxChars`, default 24 — prompt text only, clips nothing); **the Text/List choice is now a global, persisted preference** (`dsh-danmaku-preset-view` in localStorage — survives pack switches, reopening the editor and restarting dsh; packs over 500 rows still open in list to avoid a 1 MB textarea) | git log |
+| 0.6.13 | **The per-line cap is now a real, configurable hard cap** — five pool/parse paths used to hard-code 48 and silently cut longer text, with no way to raise them; new **`contentMaxChars`** (8–2000, default 200) is what the Basics section's **per-comment char cap** and the floating quick panel edit, and pool writes / likes / rewrites / LLM parsing all clip to it; the LLM section keeps **"LLM max chars"** (`styleMaxChars`, default 24 — prompt text only, clips nothing); **the Text/List choice is now a global, persisted preference** (`dsh-danmaku-preset-view` in localStorage — survives pack switches, reopening the editor and restarting dsh; packs over 500 rows still open in list to avoid a 1 MB textarea); **the session pool is now LLM-only** — only `source:'ai'` entries are cached/replayed and likeable, presets and user-sent text are never persisted, and liking a preset is a no-op (legacy rows stay on disk but are filtered on read) | git log |
 | 0.6.0 | Gift module UX rework: single-entry modal (asset warehouse / effect position / basics / test), 3 default gift cards |
 | 0.6.1 | Weight edits apply immediately + refresh-write failures reported |
 | 0.6.2 | Floating-ball out-of-bounds clamping fixed — a persisted position can no longer hide the ball |

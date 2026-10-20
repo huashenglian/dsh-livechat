@@ -95,7 +95,7 @@ UI 双语（zh/en），随宿主语言切换。
 
 | 字段 | 默认 | 范围/类型 | 作用 |
 |---|---|---|---|
-| `presetsEnabled` | true | 布尔 | 预设功能总开关；关闭后环境预设、事件突发、host 兜底**以及**已记录预设的池回放全部停止，只剩 LLM 弹幕 |
+| `presetsEnabled` | true | 布尔 | 预设功能总开关；关闭后环境预设、事件突发、host 兜底全部停止，只剩 LLM 弹幕。0.6.13 起池回放本就只回放 AI，预设行无论如何都不会回放 |
 | `presetPack` | general | general/coding/casual | 预设选择 |
 | `blockedWords` | [] | 字符串数组 | 屏蔽词（大小写不敏感） |
 | `density` | 3 | 1–5 | 生成密度 |
@@ -231,7 +231,9 @@ jq -Rs '{name:"danmaku.json", data:., existing:[]}' danmaku.json \
 | POST | `/api/danmaku/pool/restore` | `{sessionId, id}` | `{ok, item}` 或 `{ok:false, reason}`（too_old 返 403） |
 | POST | `/api/danmaku/pools/clear` | — | `{ok, removed}`（清空全部会话 live+archive 池文件） |
 | DELETE | `/api/danmaku/pool/session` | `{sessionId}` | `{ok, removed}`（只删该会话的 live+archive 池文件，其他会话不受影响） |
-| POST | `/api/danmaku/like` | `{sessionId?, content}` | `{ok, liked}`（提升 likes+weight；不存在则追加） |
+| POST | `/api/danmaku/like` | `{sessionId?, content, source:'ai'\|'preset'\|'user'}` | `{ok, liked}`（仅 `source:'ai'` 提升 likes+weight 或追加；其他来源为 no-op） |
+
+> 0.6.13：只有 `source: 'ai'` 条目会入池与回放。`preset-sample` 不写池；点赞预设/手发条目返回 `{ok:true, liked:false}`，文件零改动。
 
 ### 示例：切换预设包
 

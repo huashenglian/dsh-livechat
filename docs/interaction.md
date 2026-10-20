@@ -54,7 +54,7 @@ From the popover you can **copy** the text, **block** the content (adds to `bloc
 
 ## User-sent danmaku
 
-`userSend: true` (default) enables a text input in the quick-control menu (or via the ball). Type a short message and send — it floats across as a `source: 'user'` item, joins the session pool, and becomes eligible for history replay + like-boosting. Same `styleMaxChars` / `blockedWords` caps apply.
+`userSend: true` (default) enables a text input in the quick-control menu (or via the ball). Type a short message and send — it floats across as a `source: 'user'` item. Since 0.6.13 the pool and replay are LLM-only, so user-sent text is display-only: it is not persisted, replayed, or like-boosted. Same `styleMaxChars` / `blockedWords` caps apply.
 
 ## Heat bar
 

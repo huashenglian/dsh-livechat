@@ -95,7 +95,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 
 | Field | Default | Range / type | Effect |
 |---|---|---|---|
-| `presetsEnabled` | true | bool | Preset feature master switch; `false` stops ambient presets, event bursts, host fallbacks **and** pool replay of recorded presets — only LLM danmaku remain |
+| `presetsEnabled` | true | bool | Preset feature master switch; `false` stops ambient presets, event bursts and host fallbacks — only LLM danmaku remain. Pool replay is AI-only since 0.6.13, so preset rows are never replayed either way |
 | `presetPack` | general | general/coding/casual | Preset selection |
 | `blockedWords` | [] | string[] | Content filter (case-insensitive) |
 | `density` | 3 | 1–5 | Overall spawn density |
@@ -231,7 +231,9 @@ jq -Rs '{name:"danmaku.json", data:., existing:[]}' danmaku.json \
 | POST | `/api/danmaku/pool/restore` | `{sessionId, id}` | `{ok, item}` or `{ok:false, reason:'too_old'\|'not_found'}` (403 on too_old) |
 | POST | `/api/danmaku/pools/clear` | — | `{ok, removed}` (deletes all session live+archive pool files) |
 | DELETE | `/api/danmaku/pool/session` | `{sessionId}` | `{ok, removed}` (deletes ONLY that session's live+archive pool files; other sessions untouched) |
-| POST | `/api/danmaku/like` | `{sessionId?, content}` | `{ok, liked}` (bumps likes+weight; appends if absent) |
+| POST | `/api/danmaku/like` | `{sessionId?, content, source:'ai'\|'preset'\|'user'}` | `{ok, liked}` (only `source:'ai'` bumps likes+weight or appends; other sources are no-ops) |
+
+> 0.6.13: only `source: 'ai'` entries are cached and replayed. `preset-sample` never writes the pool; liking a preset/user item returns `{ok:true, liked:false}` without touching the file.
 
 ### Example: change preset pack
 

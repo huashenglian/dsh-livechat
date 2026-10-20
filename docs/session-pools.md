@@ -15,7 +15,7 @@ $DSH_HOME/danmaku-pools/<sessionId>.jsonl
 
 (`$DSH_HOME` defaults to `~/.dsh`, i.e. `C:\Users\<you>\.dsh` on Windows.)
 
-Each line is a JSON entry: `id`, `content`, `source` (preset/ai/user), `at` timestamp, `tags`, `weight`, `likes`. New comments (preset, LLM, or user-sent) are appended; the pool is capped at `maxPoolEntries` (default 200, oldest trimmed).
+Each line is a JSON entry: `id`, `content`, `source` (`ai` in 0.6.13+; `preset`/`user` only in legacy files), `at` timestamp, `tags`, `weight`, `likes`. Only LLM (`source: 'ai'`) comments are appended — preset and user-sent comments are generated for display and never persisted. Legacy preset/user rows stay on disk but are filtered out by replay. The pool is capped at `maxPoolEntries` (default 200, oldest trimmed).
 
 > [!IMPORTANT]
 > Pool files are deleted when a session is **user-removed** (`api-session/removed`). They are **not** deleted on `session/disposed` (which fires on memory eviction, not user deletion) — so reopening a still-listed session still has its history.
@@ -24,7 +24,7 @@ Each line is a JSON entry: `id`, `content`, `source` (preset/ai/user), `at` time
 
 ## History replay
 
-`historyReplayEnabled: true` (default) lets older pool entries resurface as ambient danmaku, scored by:
+`historyReplayEnabled: true` (default) lets older **AI pool entries** resurface as ambient danmaku, scored by:
 
 - **Time decay** — half-life `halfLifeDays` (default 7). Older = exponentially lower score.
 - **Like boost** — liked comments get `+15%` per like.
@@ -33,9 +33,11 @@ Each line is a JSON entry: `id`, `content`, `source` (preset/ai/user), `at` time
 
 The top `historyReplayMax` (default 12) scored entries replay. This is why a session that's been talking about "regex" starts surfacing old regex-related banter again.
 
+Legacy preset/user rows remain in the file and stay queryable through the pool API, but they are never scored for replay.
+
 ## Liking
 
-Liking a danmaku (`POST /api/danmaku/like`) bumps its `likes` and `weight` (capped at 10), making it resurface more often. If the liked content isn't already in the pool, it's appended as a liked user entry — so you can promote ad-hoc comments too.
+Liking an AI danmaku (`POST /api/danmaku/like` with `source: 'ai'`) bumps its `likes` and `weight` (capped at 10), making it resurface more often. Only `source: 'ai'` rows are actionable: liking a preset or user item is a no-op (`{ok: true, liked: false}`) and never writes the pool. If the liked AI content isn't already in the pool, it's appended as a liked AI entry — so you can promote ad-hoc AI comments too.
 
 ## Archive & restore
 

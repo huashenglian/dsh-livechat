@@ -15,7 +15,7 @@ $DSH_HOME/danmaku-pools/<sessionId>.jsonl
 
 （`$DSH_HOME` 默认 `~/.dsh`，Windows 上即 `C:\Users\<你>\.dsh`。）
 
-每行一个 JSON 条目：`id`、`content`、`source`（preset/ai/user）、`at` 时间戳、`tags`、`weight`、`likes`。新评论（预设/LLM/手发）追加；池上限 `maxPoolEntries`（默认 200，裁最旧）。
+每行一个 JSON 条目：`id`、`content`、`source`（0.6.13 起只写 `ai`；旧文件里可能还有 `preset`/`user`）、`at` 时间戳、`tags`、`weight`、`likes`。只追加 LLM（`source: 'ai'`）弹幕——预设与手发只用于当前显示，不落盘；旧 preset/user 行保留在磁盘但回放时过滤。池上限 `maxPoolEntries`（默认 200，裁最旧）。
 
 > [!IMPORTANT]
 > 会话被**用户删除**（`api-session/removed`）时池文件删除。`session/disposed`（内存驱逐，非用户删除）**不**删池——重新打开仍列表的会话仍有历史。
@@ -24,7 +24,7 @@ $DSH_HOME/danmaku-pools/<sessionId>.jsonl
 
 ## 历史回放
 
-`historyReplayEnabled: true`（默认）让旧池条目作为环境弹幕重现，按以下打分：
+`historyReplayEnabled: true`（默认）让旧 **AI 池条目**作为环境弹幕重现，按以下打分：
 
 - **时间衰减**——半衰期 `halfLifeDays`（默认 7）。越旧指数越低。
 - **点赞加权**——每赞 `+15%`。
@@ -33,9 +33,11 @@ $DSH_HOME/danmaku-pools/<sessionId>.jsonl
 
 前 `historyReplayMax`（默认 12）条高分回放。所以聊过"正则"的会话会重新浮现旧的正则相关弹幕。
 
+旧 preset/user 行仍在文件里、仍可经池 API 查询，但不参与回放打分。
+
 ## 点赞
 
-点赞弹幕（`POST /api/danmaku/like`）提升其 `likes` 与 `weight`（上限 10），使其更常浮现。若被赞内容不在池中，作为点赞用户条目追加——可临时推广评论。
+点赞 AI 弹幕（`POST /api/danmaku/like`，`source: 'ai'`）提升其 `likes` 与 `weight`（上限 10），使其更常浮现。只有 `source: 'ai'` 条目可操作：点赞预设或手发条目是 no-op（`{ok: true, liked: false}`），不会写池。若被赞的 AI 内容不在池中，作为点赞 AI 条目追加——可临时推广 AI 评论。
 
 ## 归档与恢复
 
