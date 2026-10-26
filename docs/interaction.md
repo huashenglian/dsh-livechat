@@ -10,7 +10,7 @@ Everything you can touch: the floating control ball, hover-to-pause, click-for-d
 A small draggable ball sits over the conversation area (top-right by default). It's your always-on quick control:
 
 - **Drag** to reposition — position persists in `localStorage` (`dsh-danmaku-ball-pos`) per-browser.
-- **Click** to pop a quick-control menu: danmaku on/off, hover interaction, opacity, scroll speed, font size, **per-comment char cap** (`contentMaxChars`, since 0.6.13 — the real per-line hard cap, same value as the settings card's Basics section, applied and persisted immediately), max on screen, display area, LLM switch — plus buttons to open the full settings card or the display-area editor.
+- **Click** to pop a quick-control menu: danmaku on/off, hover interaction, opacity, scroll speed, font size, **per-comment char cap** (`contentMaxChars`, since 0.6.13 — the real per-line hard cap, same value as the settings card's Basics section, applied and persisted immediately), max on screen, display area, LLM switch — plus buttons to open the full settings card or the display-area editor. Sliders stop at their practical maximum but the **number field accepts more**: max on screen is a 5–80 slider with a **1–200** input (the settings card's range), the thumb parks at the end and the value still applies — no need to open the full card just to go higher.
 - **Idle** state shows a compact dot; **active** state (recent triggers) shows a livelier pop.
 
 The ball hides when danmaku is fully disabled, and reappears on re-enable.

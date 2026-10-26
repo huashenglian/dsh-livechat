@@ -142,6 +142,10 @@
 
 关闭某项即不喂给弹幕 LLM。
 
+**隐私脱敏（始终开启，无开关）**
+
+会话文本、思考片段、工具名、警告与统计在**写入缓冲区时**先经 `redactSecrets()` 脱敏，`buildLlmPrompt` 拼装时再对每个动态字段兜底一次——所以弹幕模型**读不到**用户粘进对话的凭据：`sk-`/`rk-`、GitHub/Slack/AWS/Google 密钥、JWT、`Bearer`、`apiKey=…` / `token: …` / `密码：…` 之类的 `label=value`、PEM 私钥块、32+ 位 hex / 40+ 位 base64 长串，以及 `C:Users<name>`、`/home/<name>` 里的系统用户名，全部替换为 `［已隐藏］`。触发器预览（`/api/danmaku/triggers` 的 `preview`）同样脱敏。
+
 **静默退避（`backoff*`）**
 
 `interval` 心跳在静默期按 `backoffBaseSec` → ×`backoffFactor` 递增，上限 `backoffMaxSec`；活跃时长 ≥`backoffResetSec` 则重置。`backoffEnabled: false` 关闭。

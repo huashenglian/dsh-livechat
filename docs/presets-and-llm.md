@@ -142,6 +142,10 @@ All modes share a `globalMinGapSec` throttle so the LLM is never hammered.
 
 Disable a key to omit it from the LLM prompt.
 
+**Secret masking (always on, no toggle)**
+
+Session text, thinking snippets, tool names, warnings and usage are passed through `redactSecrets()` **at ingestion** (the buffers never hold the raw value) and again for every dynamic field when `buildLlmPrompt` assembles the prompt — so the danmaku model never *reads* a credential the user pasted into the chat: `sk-`/`rk-`, GitHub/Slack/AWS/Google keys, JWTs, `Bearer` headers, `label=value` forms like `apiKey=…` / `token: …` / `密码：…`, PEM private-key blocks, 32+ hex / 40+ base64 blobs, and the account name inside `C:Users<name>` / `/home/<name>` all become `［已隐藏］`. Trigger previews (`/api/danmaku/triggers` `preview`) are masked too.
+
 **Silence backoff (`backoff*`)**
 
 Interval heartbeat grows from `backoffBaseSec` by `backoffFactor` up to `backoffMaxSec` while quiet; activity ≥ `backoffResetSec` resets. Set `backoffEnabled: false` to disable.
