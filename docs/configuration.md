@@ -73,7 +73,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `fontSize` | 16 | 12–36 | px |
 | `crossSec` | 8 | 3–20 | Seconds for roll item to cross |
 | `scrollSpeed` | 140 | 40–400 | px/s (overrides crossSec-derived speed) |
-| `areaRatio` | 0.5 | 0.25–1.0 | Roll track height fraction. Track count is `hostHeight × ratio / lineHeight` (ceiling 64) roll danmaku pick a **random enterable row** (a row becomes reusable once its predecessor has travelled 0.4 of the viewport, so each row holds 2–3 lines instead of forming a diagonal; box + gap + catch-up prediction, no overlap) while top/bottom stack from their own edge, so `1` really fills the overlay |
+| `areaRatio` | 0.5 | 0.25–1.0 | Roll track height fraction. Track count is `hostHeight × ratio / lineHeight` (ceiling 64) roll danmaku take the **topmost enterable row** (a row becomes reusable once its predecessor has travelled 0.25 of the viewport, so each row holds ~3 lines and the used rows stay a contiguous 0..K-1 block — no vertical holes; box + gap + catch-up prediction, no overlap) while top/bottom stack from their own edge, so `1` really fills the overlay |
 | `layoutWeights` | `{roll:80,top:10,bottom:10}` | 0–100 each (slider + number) | roll/top/bottom spawn weights |
 | `stroke` | true | bool | White text stroke for readability |
 | `hoverPause` | true | bool | Freeze item on hover |
