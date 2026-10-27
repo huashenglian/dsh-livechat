@@ -98,7 +98,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `presetsEnabled` | true | bool | Preset feature master switch; `false` stops ambient presets, event bursts and host fallbacks — only LLM danmaku remain. Pool replay is AI-only since 0.6.13, so preset rows are never replayed either way |
 | `presetPack` | general | general/coding/casual | Preset selection |
 | `blockedWords` | [] | string[] | Content filter (case-insensitive) |
-| `density` | 3 | 1–10 | Spawn rate budget (1–2 → 3 lines/s, 3–5 → 6, 6–8 → 8, 9–10 → 10). **One line per tick**, with the interval shortened by that budget (`max(70, delay/perTick)`), so lines never arrive in visible batches |
+| `density` | 3 | 1–10 | Spawn rate budget (1–2 → 3 lines/s, 3–5 → 6, 6–8 → 8, 9–10 → 10). **One line per tick**, and the interval never goes below what the band can absorb (`rows / row-reuse cycle`; a small display area slows down by itself), so lines never arrive in visible batches |
 | `ambientMinMs` | 500 | 400–10000 | Min ambient spawn gap (ms) |
 | `ambientMaxMs` | 1400 | ≥min+200, ≤20000 | Max ambient spawn gap (ms) |
 | `contentMaxChars` | 200 | 8–2000 | **The real per-line hard cap**: pool writes, likes, rewrites and LLM output parsing all clip to it; same value as the settings card's Basics section and the floating quick panel |
