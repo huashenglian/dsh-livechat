@@ -73,7 +73,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `fontSize` | 16 | 12–36 | px |
 | `crossSec` | 8 | 3–20 | Seconds for roll item to cross |
 | `scrollSpeed` | 140 | 40–400 | px/s (overrides crossSec-derived speed) |
-| `areaRatio` | 0.5 | 0.25–1.0 | Roll track height fraction. Track count is `hostHeight × ratio / lineHeight` (ceiling 64) roll danmaku take the **topmost row that can be entered safely** (a row is reused once its predecessor has travelled 0.4 of the viewport, so each row holds 2–3 lines instead of forming a diagonal; box + gap + catch-up prediction, no vertical holes) while top/bottom stack from their own edge, so `1` really fills the overlay |
+| `areaRatio` | 0.5 | 0.25–1.0 | Roll track height fraction. Track count is `hostHeight × ratio / lineHeight` (ceiling 64) roll danmaku pick a **random enterable row** (a row becomes reusable once its predecessor has travelled 0.4 of the viewport, so each row holds 2–3 lines instead of forming a diagonal; box + gap + catch-up prediction, no overlap) while top/bottom stack from their own edge, so `1` really fills the overlay |
 | `layoutWeights` | `{roll:80,top:10,bottom:10}` | 0–100 each (slider + number) | roll/top/bottom spawn weights |
 | `stroke` | true | bool | White text stroke for readability |
 | `hoverPause` | true | bool | Freeze item on hover |
@@ -98,7 +98,7 @@ All fields live under the `danmaku` settings namespace. Values are clamped on wr
 | `presetsEnabled` | true | bool | Preset feature master switch; `false` stops ambient presets, event bursts and host fallbacks — only LLM danmaku remain. Pool replay is AI-only since 0.6.13, so preset rows are never replayed either way |
 | `presetPack` | general | general/coding/casual | Preset selection |
 | `blockedWords` | [] | string[] | Content filter (case-insensitive) |
-| `density` | 3 | 1–10 | Overall spawn density (1–2 → two lines per tick, 3–5 → three, 6–8 → four, 9–10 → five; the interval also shrinks by √density) |
+| `density` | 3 | 1–10 | Overall spawn density (1–2 → three lines per tick, 3–5 → six, 6–8 → eight, 9–10 → ten; the interval also shrinks by √density) |
 | `ambientMinMs` | 500 | 400–10000 | Min ambient spawn gap (ms) |
 | `ambientMaxMs` | 1400 | ≥min+200, ≤20000 | Max ambient spawn gap (ms) |
 | `contentMaxChars` | 200 | 8–2000 | **The real per-line hard cap**: pool writes, likes, rewrites and LLM output parsing all clip to it; same value as the settings card's Basics section and the floating quick panel |
